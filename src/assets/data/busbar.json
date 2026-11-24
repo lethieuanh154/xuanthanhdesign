@@ -1,0 +1,14 @@
+{
+  "_note": "SỐ MẪU — bảng chọn thanh cái đồng theo dòng định mức (rộng × dày, mm). Cần đối chiếu catalogue nhà sản xuất đồng / tiêu chuẩn IEC 61439 và điều kiện lắp đặt thực tế.",
+  "busbars": [
+    { "ratedA": 100, "w": 15, "t": 3 },
+    { "ratedA": 160, "w": 20, "t": 3 },
+    { "ratedA": 250, "w": 25, "t": 5 },
+    { "ratedA": 400, "w": 30, "t": 5 },
+    { "ratedA": 630, "w": 50, "t": 5 },
+    { "ratedA": 800, "w": 60, "t": 6 },
+    { "ratedA": 1000, "w": 80, "t": 6 },
+    { "ratedA": 1250, "w": 80, "t": 8 },
+    { "ratedA": 1600, "w": 100, "t": 10 }
+  ]
+}

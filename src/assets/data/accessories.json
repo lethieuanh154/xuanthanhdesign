@@ -1,0 +1,12 @@
+{
+  "_note": "Phụ kiện vỏ tủ — giá mẫu. id dùng cho công thức gợi ý số lượng trong geometry/bom.ts (suggestAccessoryQty).",
+  "accessories": [
+    { "id": "tay-nam", "name": "Tay nắm khoá tủ điện", "unit": "cái", "price": 120000, "spec": "MS480, kẽm đúc" },
+    { "id": "ban-le", "name": "Bản lề âm", "unit": "cái", "price": 35000, "spec": "CL201, mở 120°" },
+    { "id": "khoa", "name": "Khoá / chốt cửa", "unit": "cái", "price": 45000, "spec": "MS705" },
+    { "id": "ron", "name": "Ron cao su cửa", "unit": "m", "price": 25000, "spec": "EPDM 10×6" },
+    { "id": "oc-vit", "name": "Ốc vít", "unit": "bộ", "price": 150000, "spec": "Bộ M4–M10 inox" },
+    { "id": "ray-din", "name": "Thanh ray DIN", "unit": "m", "price": 40000, "spec": "35 mm, thép mạ" },
+    { "id": "mang-dien", "name": "Máng điện", "unit": "m", "price": 55000, "spec": "45×45 có nắp" }
+  ]
+}

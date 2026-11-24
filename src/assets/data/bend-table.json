@@ -1,0 +1,5 @@
+{
+  "note": "SỐ MẪU — BD (bend deduction, mm) cho góc chấn 90°. Xưởng cần chấn thử thực tế (theo máy chấn, cối V và lô tôn) rồi thay số đo vào đây. Công thức: L trải phẳng = Σ kích thước ngoài − n × BD.",
+  "steel": { "1.0": 1.7, "1.2": 2.0, "1.5": 2.6, "2.0": 3.5, "2.5": 4.3, "3.0": 5.2 },
+  "copper": { "3": 5.0, "5": 8.5, "6": 10.0, "8": 13.5, "10": 17.0 }
+}
