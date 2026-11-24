@@ -13,6 +13,7 @@ import {
   CabinetTemplate,
   computeBom,
   computeLayout,
+  coverWindows,
   createProject,
   DeviceDef,
   dxfFileName,
@@ -164,6 +165,7 @@ describe('Bộ luật kiểm tra (rules.ts)', () => {
   it('chi tiết vượt khổ tôn → lỗi', () => {
     const tpl = cat.templates.find((t) => t.id === 'MSB')!;
     const p = createProject(cat, tpl);
+    p.sheetSize = '1250x2500';
     p.enclosure.H = 2600;
     p.enclosure.sectionHeights = [600, 1000, 1000];
     expect(errorsFor(p).some((r) => r.rule === 'sheet')).toBe(true);
@@ -273,5 +275,76 @@ describe('Sắp tôn & BOM', () => {
     expect(s15.kg).toBeCloseTo(s15.areaM2 * 1.5 * 7.85, 0);
     expect(bom.rows.some((r) => r.category === 'Phụ kiện')).toBe(true);
     expect(bom.total).toBe(bom.rows.reduce((s, r) => s + r.amount, 0));
+  });
+});
+
+describe('Tủ 2 lớp (cửa ngoài + cửa trong khoét ô)', () => {
+  const make = (): Project => {
+    const tpl = cat.templates.find((t) => t.id === '2L')!;
+    const p = createProject(cat, tpl, { orderCode: 'XT-2611-0009' });
+    p.devices = [
+      place('mccb-3p-100', 60, 300, 'plate', 'm1'),
+      place('mccb-3p-100', 60, 150, 'plate', 'm2'),
+      place('mccb-4p-100-cvs', 170, 250, 'plate', 'cvs'),
+      place('mcb-2p-6', 330, 380, 'plate', 'mcb'),
+      place('fuse-3p', 366, 380, 'plate', 'fuse'),
+      place('relay-phase', 330, 280, 'plate', 'rl'),
+      place('zct-80', 200, 60, 'plate', 'z1'),
+      place('zct-80', 330, 110, 'plate', 'z2'),
+      place('elr-mikro', 60, 600, 'door', 'e1'),
+      place('elr-mikro', 180, 600, 'door', 'e2'),
+      place('meter-v', 300, 600, 'door', 'v'),
+      place('selector-v', 60, 480, 'door', 'sw'),
+      place('lamp-red', 140, 500, 'door', 'l1'),
+      place('lamp-yellow', 190, 500, 'door', 'l2'),
+      place('lamp-blue', 240, 500, 'door', 'l3'),
+    ];
+    return p;
+  };
+
+  it('sinh đủ chi tiết: cửa trong, gân cửa, 4 tai treo, tấm che đáy', () => {
+    const parts = generateParts(make(), cat);
+    const by = (c: string) => parts.find((x) => x.code === c);
+    expect(by('CUA-TRONG')).toBeTruthy();
+    expect(by('GAN-CUA')?.qty).toBe(2);
+    expect(by('TAI-TREO')?.qty).toBe(4);
+    expect(by('TAM-CHE-DAY')?.holes.length).toBe(4);
+    expect(by('CUA-NGOAI')).toBeTruthy();
+    // tai treo ngoài → hậu không còn 4 lỗ treo oblong
+    expect(by('HAU')!.holes.filter((h) => h.kind === 'poly').length).toBe(0);
+  });
+
+  it('cửa ngoài chỉ khoét cho thiết bị gắn cửa; cửa trong khoét ô lộ aptomat, gộp ô sát nhau', () => {
+    const p = make();
+    const parts = generateParts(p, cat);
+    const door = parts.find((x) => x.code === 'CUA-NGOAI')!;
+    expect(door.holes.filter((h) => h.ref).map((h) => h.ref).sort()).toEqual(['e1', 'e2', 'l1', 'l2', 'l3', 'sw', 'v']);
+    const wins = coverWindows(p, cat);
+    // m1, m2, cvs, relay riêng; MCB + cầu chì đặt sát nhau (ray DIN) gộp thành 1 ô; ZCT không cần ô
+    expect(wins.length).toBe(5);
+    const merged = wins.find((w) => w.uids.includes('mcb'))!;
+    expect(merged.uids.sort()).toEqual(['fuse', 'mcb']);
+    expect(merged.rect.w).toBeCloseTo(36 + 54 + 4, 1);
+    const cover = parts.find((x) => x.code === 'CUA-TRONG')!;
+    expect(cover.holes.filter((h) => h.kind === 'poly').length).toBe(5);
+  });
+
+  it('bố trí mẫu không có lỗi; ô khoét sát mép cửa trong → lỗi', () => {
+    const p = make();
+    const errs = (pp: Project) => runRules(pp, cat, computeLayout(pp.enclosure, pp.busbar), generateParts(pp, cat)).filter((r) => r.level === 'error');
+    expect(errs(p).map((r) => r.message)).toEqual([]);
+    p.devices.find((d) => d.uid === 'm2')!.x = 42;
+    p.devices.find((d) => d.uid === 'm2')!.y = 42;
+    expect(errs(p).some((r) => r.rule === 'cover-window' || r.rule === 'mount-area')).toBe(true);
+  });
+
+  it('DXF cửa trong parse lại được, biên dạng khép kín, đúng layer', () => {
+    const cover = generateParts(make(), cat).find((x) => x.code === 'CUA-TRONG')!;
+    const dxf = new DxfParser().parseSync(partToDxf(cover))!;
+    const ents = dxf.entities as unknown as { type: string; layer: string; shape?: boolean }[];
+    const polys = ents.filter((e) => e.type === 'POLYLINE');
+    expect(polys.every((e) => e.shape && e.layer === 'CUT')).toBe(true);
+    expect(polys.length + ents.filter((e) => e.type === 'CIRCLE').length).toBe(1 + cover.holes.length);
+    expect(ents.filter((e) => e.type === 'LINE').length).toBe(4);
   });
 });

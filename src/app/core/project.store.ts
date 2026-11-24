@@ -108,7 +108,10 @@ export class ProjectStore {
       this.project.set(this.migrate(loaded));
       this.step.set(3);
     } else {
-      this.project.set(createProject(this.cat, this.cat.templates[2]));
+      // dự án mặc định lúc khởi động: chưa lưu cho tới khi người dùng sửa gì đó
+      const p = createProject(this.cat, this.cat.templates[2]);
+      this.pristine = p;
+      this.project.set(p);
       this.step.set(1);
     }
     this.repo.setLastOpenedId(this.project().id);
@@ -116,7 +119,7 @@ export class ProjectStore {
   }
 
   private migrate(p: Project): Project {
-    return { ...p, sheetSize: p.sheetSize ?? '1250x2500', accessories: p.accessories ?? [], devices: p.devices ?? [] };
+    return { ...p, sheetSize: p.sheetSize ?? '1500x3000', accessories: p.accessories ?? [], devices: p.devices ?? [] };
   }
 
   defOf(id: string): DeviceDef | undefined {
@@ -136,6 +139,8 @@ export class ProjectStore {
       const s = sug.find((x) => x.id === a.id)?.qty ?? 0;
       return cur && !cur.auto ? cur : { id: a.id, qty: s, auto: true };
     });
+    // tủ 2 lớp: thiết bị tấm đế lộ qua cửa trong, cửa ngoài không khoét cho chúng
+    if (p.enclosure.doorType === 'two_layer') p.devices.forEach((d) => d.mount === 'plate' && (d.doorCutout = false));
     p.updatedAt = new Date().toISOString();
     this.project.set(p);
   }
@@ -212,10 +217,10 @@ export class ProjectStore {
 
   // ---------- thiết bị ----------
   /** Thêm thiết bị. `center` (toạ độ thân tủ) nếu kéo thả; không có thì tự tìm chỗ trống. */
-  addDevice(deviceId: string, center?: { x: number; y: number }): string | null {
+  addDevice(deviceId: string, center?: { x: number; y: number }, opts: { batch?: string; quiet?: boolean } = {}): string | null {
     const def = this.defOf(deviceId);
     if (!def) return null;
-    const pd: PlacedDevice = { uid: uid('d'), deviceId, x: 0, y: 0, rot: 0, mount: def.mount, doorCutout: def.mount === 'door' || !!def.cutoutDefault };
+    const pd: PlacedDevice = { uid: uid('d'), deviceId, x: 0, y: 0, rot: 0, mount: def.mount, doorCutout: def.mount === 'door' || !!def.cutoutDefault, batch: opts.batch };
     const f = deviceFootprint(def, 0);
     if (center) {
       const e = this.project().enclosure;
@@ -230,10 +235,68 @@ export class ProjectStore {
       pd.y = spot.y;
     }
     this.update((p) => p.devices.push(pd));
+    if (opts.quiet) return pd.uid;
     this.selectedIds.set([pd.uid]);
     if (this.step() < 3) this.step.set(3);
     this.view.set('front');
     return pd.uid;
+  }
+
+  /** Thêm `qty` thiết bị cùng 1 nhóm, mỗi cái tự tìm chỗ hợp lệ đầu tiên. Trả về id nhóm. */
+  addBatch(deviceId: string, qty: number, batch = uid('b')): string {
+    const ids: string[] = [];
+    for (let i = 0; i < Math.max(1, Math.min(50, Math.round(qty))); i++) {
+      const id = this.addDevice(deviceId, undefined, { batch, quiet: true });
+      if (id) ids.push(id);
+    }
+    this.selectedIds.set(ids);
+    return batch;
+  }
+
+  /** Các nhóm thiết bị (thiết bị cũ chưa có batch → mỗi cái 1 nhóm). */
+  readonly batches = computed(() => {
+    const list: { id: string; deviceId: string; mount: 'plate' | 'door'; uids: string[] }[] = [];
+    for (const d of this.project().devices) {
+      const key = d.batch ?? d.uid;
+      const g = list.find((x) => x.id === key);
+      if (g) g.uids.push(d.uid);
+      else list.push({ id: key, deviceId: d.deviceId, mount: d.mount, uids: [d.uid] });
+    }
+    return list;
+  });
+
+  removeUids(ids: string[]): void {
+    this.update((p) => (p.devices = p.devices.filter((d) => !ids.includes(d.uid))));
+    this.selectedIds.update((s) => s.filter((x) => !ids.includes(x)));
+  }
+
+  /** Đổi model / số lượng / vị trí gắn của 1 nhóm (xếp lại chỗ cho cả nhóm). */
+  replaceBatch(batchId: string, deviceId: string, qty: number, mount?: 'plate' | 'door'): void {
+    const g = this.batches().find((b) => b.id === batchId);
+    if (!g) return;
+    const keep = g.deviceId === deviceId && (!mount || mount === g.mount);
+    if (keep && qty >= g.uids.length) {
+      for (let i = g.uids.length; i < qty; i++) this.addDevice(deviceId, undefined, { batch: batchId, quiet: true });
+    } else if (keep) {
+      this.removeUids(g.uids.slice(qty));
+    } else {
+      this.removeUids(g.uids);
+      for (let i = 0; i < qty; i++) {
+        const id = this.addDevice(deviceId, undefined, { batch: batchId, quiet: true });
+        if (id && mount) this.patchDevice(id, { mount, doorCutout: mount === 'door' || !!this.defOf(deviceId)?.cutoutDefault, x: 0, y: 0 });
+        if (id && mount) {
+          const pd = this.project().devices.find((d) => d.uid === id)!;
+          const spot = this.findFreeSpot(this.defOf(deviceId)!, pd, id);
+          this.patchDevice(id, spot);
+        }
+      }
+    }
+    this.selectedIds.set(this.batches().find((b) => b.id === batchId)?.uids ?? []);
+  }
+
+  duplicateBatch(batchId: string): void {
+    const g = this.batches().find((b) => b.id === batchId);
+    if (g) this.addBatch(g.deviceId, g.uids.length);
   }
 
   /** Quét từ trên xuống, trái sang phải tìm vị trí không va chạm. */
@@ -398,26 +461,55 @@ export class ProjectStore {
   }
 
   // ---------- lưu / mở ----------
+  /** Dự án tạo tự động lúc mở app, chưa bị sửa → không lưu (tránh đơn rỗng trong danh sách). */
+  private pristine: Project | null = null;
+
   private async persist(p: Project): Promise<void> {
+    if (p === this.pristine) return;
     await this.repo.save(p);
     this.repo.setLastOpenedId(p.id);
     this.lastSavedAt.set(new Date().toLocaleTimeString('vi-VN'));
     await this.refreshList();
   }
 
-  async saveNow(): Promise<void> {
+  async saveNow(flash = true): Promise<void> {
     await this.persist(this.project());
-    this.flash('Đã lưu dự án vào trình duyệt');
+    if (flash) this.flash('Đã lưu dự án vào trình duyệt');
   }
 
   async refreshList(): Promise<void> {
     this.savedList.set(await this.repo.list());
   }
 
+  /** Mở dự án theo id trên URL; 'moi' → tạo mới. Trả về id thực. */
+  async ensureProject(id: string): Promise<string | null> {
+    if (id === 'moi') {
+      await this.persist(this.project());
+      const p = createProject(this.cat, this.cat.templates.find((t) => t.id === 'ATS') ?? this.cat.templates[0]);
+      p.name = 'Cấu hình mới';
+      p.customer = '';
+      p.status = 'draft';
+      p.orderCode = this.repo.nextOrderCode();
+      this.project.set(p);
+      this.selectedIds.set([]);
+      this.repo.setLastOpenedId(p.id);
+      return p.id;
+    }
+    if (this.project()?.id === id) return id;
+    const p = await this.repo.load(id);
+    if (!p) return null;
+    await this.persist(this.project());
+    this.project.set(this.migrate(p));
+    this.selectedIds.set([]);
+    this.repo.setLastOpenedId(id);
+    return id;
+  }
+
   async newProject(): Promise<void> {
     await this.persist(this.project());
     const p = createProject(this.cat, this.cat.templates[2]);
     p.name = 'Dự án mới';
+    p.orderCode = this.repo.nextOrderCode();
     this.project.set(p);
     this.selectedIds.set([]);
     this.step.set(1);

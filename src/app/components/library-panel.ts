@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CdkDrag, CdkDragPlaceholder, CdkDragPreview, CdkDropList } from '@angular/cdk/drag-drop';
-import { DeviceDef, removeDiacritics } from '../geometry';
+import { CabinetType, DeviceDef, removeDiacritics } from '../geometry';
 import { ProjectStore } from '../core/project.store';
 import { DeviceIcon } from './device-icon';
 import { vnd } from '../core/export.service';
@@ -174,7 +174,7 @@ export class LibraryPanel {
     });
   }
 
-  pickTemplate(id: 'DB' | 'MSB' | 'ATS' | 'CAP'): void {
+  pickTemplate(id: CabinetType): void {
     if (id === this.store.project().cabinetType) return;
     if (confirm('Đổi loại tủ sẽ nạp lại thông số vỏ theo mẫu (giữ thiết bị đã đặt). Tiếp tục?')) this.store.chooseTemplate(id);
   }

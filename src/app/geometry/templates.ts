@@ -3,7 +3,8 @@ import { BendLine, Hole, Part, PartGroup, PartMaterial, Polyline, TextMark } fro
 import { bendDeduction } from './bend';
 import { allSides, flangedPanel, FlangeStep, PanelSpec, profileStrip } from './panel';
 import { circle, oblong, r2, rectPoly, translateHole } from './math';
-import { computeLayout, deviceCutout, devicePlateHoles, DoorLeaf, EnclosureLayout } from './layout';
+import { coverWindows } from './cover';
+import { computeLayout, deviceCutout, devicePlateHoles, DoorLeaf, EnclosureLayout, lockX } from './layout';
 
 /**
  * TEMPLATE CHI TIẾT: mỗi hàm nhận tham số → trả về Part trải phẳng.
@@ -57,12 +58,39 @@ export function ventSlots(faceW: number, yStart: number, rows = 5): Hole[] {
   return holes;
 }
 
+/** Lỗ lắp quạt 120×120: lỗ tròn Ø114 + 4 lỗ bắt vít Ø4.5 bước 105 (số mẫu). */
+export function fanCutout(cx: number, cy: number): Hole[] {
+  const holes: Hole[] = [circle(cx, cy, 114)];
+  for (const [dx, dy] of [
+    [-52.5, -52.5],
+    [52.5, -52.5],
+    [-52.5, 52.5],
+    [52.5, 52.5],
+  ])
+    holes.push(circle(cx + dx, cy + dy, 4.5));
+  return holes;
+}
+
+/** 3 khe gió oblong đứng 10×100 ở phía trước – dưới của hông (như tủ 2 lớp xưởng hay làm). */
+export function verticalSlots(faceW: number): Hole[] {
+  const holes: Hole[] = [];
+  const x0 = faceW - 55;
+  for (let i = 0; i < 3; i++) holes.push(oblong(x0 - i * 24, 150, 100, 10, true));
+  return holes;
+}
+
 /** Hông trái/phải: mặt D×H, gấp mép 4 cạnh, khe thông gió tuỳ chọn. */
 export function sidePanel(p: Project, bd: number, relief: number, side: 'T' | 'P'): Part {
   const e = p.enclosure;
   const holes: Hole[] = [];
-  if (e.vent !== 'none') holes.push(...ventSlots(e.D, 90));
+  if (e.vent === 'bottom' || e.vent === 'top_bottom') holes.push(...ventSlots(e.D, 90));
+  if (e.vent === 'side_vertical') holes.push(...verticalSlots(e.D));
   if (e.vent === 'top_bottom') holes.push(...ventSlots(e.D, e.H - 90 - 4 * 16));
+  if (e.vent === 'fan') {
+    // quạt hút 120 ở hông phải phía dưới, khe gió vào ở hông trái phía trên
+    if (side === 'P') holes.push(...fanCutout(e.D / 2, 160));
+    else holes.push(...ventSlots(e.D, e.H - 90 - 4 * 16));
+  }
   return panelPart(
     { id: `hong-${side}`, code: side === 'T' ? 'HONG-T' : 'HONG-P', name: side === 'T' ? 'Hông trái' : 'Hông phải', group: 'vo', material: e.material, thickness: e.thickness, qty: 1 },
     { faceW: e.D, faceH: e.H, flanges: allSides([{ len: FLANGE, dir: 'UP' }]), bd, relief, holes },
@@ -73,7 +101,7 @@ export function sidePanel(p: Project, bd: number, relief: number, side: 'T' | 'P
 export function backPanel(p: Project, bd: number, relief: number): Part {
   const e = p.enclosure;
   const holes: Hole[] = [];
-  if (e.mounting === 'wall') {
+  if (e.mounting === 'wall' && !e.brackets) {
     const m = 45;
     for (const [x, y] of [
       [m, m],
@@ -109,9 +137,10 @@ export function roofPanel(p: Project, bd: number, relief: number): Part {
 export function bottomPanel(p: Project, bd: number, relief: number): Part {
   const e = p.enclosure;
   const holes: Hole[] = [];
-  if (e.mounting === 'floor' && e.W > 300 && e.D > 300) {
-    const cw = e.W - 200,
-      ch = e.D - 200;
+  const g = glandOpening(p);
+  if (g) {
+    const cw = g.w,
+      ch = g.h;
     const x = (e.W - cw) / 2,
       y = (e.D - ch) / 2;
     holes.push(rectPoly(x, y, cw, ch));
@@ -133,6 +162,84 @@ export function bottomPanel(p: Project, bd: number, relief: number): Part {
   );
 }
 
+/** Ô đi cáp chữ nhật ở đáy (null = dùng lỗ tròn knock-out). */
+export function glandOpening(p: Project): { w: number; h: number } | null {
+  const e = p.enclosure;
+  if (e.cableEntry === 'gland') return { w: Math.max(80, e.W - 160), h: Math.max(60, e.D - 110) };
+  if (e.cableEntry !== 'knockout' && e.mounting === 'floor' && e.W > 300 && e.D > 300) return { w: e.W - 200, h: e.D - 200 };
+  return null;
+}
+
+/** Tấm che lỗ cáp ở đáy: tấm phẳng phủ ô đi cáp + 25 mm mỗi bên, 4 lỗ bulông khớp với đáy. */
+export function glandPlate(p: Project): Part[] {
+  const g = glandOpening(p);
+  if (!g) return [];
+  const e = p.enclosure;
+  const w = g.w + 50,
+    h = g.h + 50;
+  const holes: Hole[] = [
+    [10, 10],
+    [w - 10, 10],
+    [10, h - 10],
+    [w - 10, h - 10],
+  ].map(([x, y]) => circle(x, y, 6.5));
+  return [makePart({ id: 'tam-che-day', code: 'TAM-CHE-DAY', name: 'Tấm che lỗ cáp đáy', group: 'vo', material: e.material, thickness: e.thickness, qty: 1 }, { outline: rectPoly(0, 0, w, h), holes, bendLines: [], bbox: { minX: 0, minY: 0, maxX: w, maxY: h } })];
+}
+
+/** Tai treo ngoài: thép 2 mm chấn L (chân 25 hàn lưng tủ, cánh 60 có lỗ Ø10.5), 4 cái. */
+export function bracketParts(p: Project, bdOf: (t: number) => number): Part[] {
+  const e = p.enclosure;
+  if (e.mounting !== 'wall' || !e.brackets) return [];
+  const t = 2.0;
+  const s = profileStrip(50, [
+    { len: 25, dir: 'UP' },
+    { len: 60, dir: 'UP' },
+  ], bdOf(t));
+  const holes: Hole[] = [oblong(25, s.segFlat[0] + s.segFlat[1] * 0.55, 18, 10.5, true)];
+  return [makePart({ id: 'tai-treo', code: 'TAI-TREO', name: 'Tai treo tủ', group: 'vo', material: 'SPCC', thickness: t, qty: 4 }, { outline: s.outline, holes, bendLines: s.bendLines, bbox: { minX: 0, minY: 0, maxX: 50, maxY: s.width } })];
+}
+
+/**
+ * Cửa trong của tủ 2 lớp: gấp mép đơn 20, bản lề cùng phía cửa ngoài,
+ * ô khoét lộ cần gạt aptomat (tự sinh), lỗ khoá ¼ vòng ở phía đối diện bản lề.
+ */
+export function coverPanel(p: Project, cat: Catalog, layout: EnclosureLayout, bd: number, relief: number): Part[] {
+  const cov = layout.cover;
+  if (!cov) return [];
+  const e = p.enclosure;
+  const holes: Hole[] = coverWindows(p, cat).map((w) => rectPoly(w.rect.x - cov.x, w.rect.y - cov.y, w.rect.w, w.rect.h, w.uids[0]));
+  // bản lề: 2 lỗ Ø6.5 mỗi bản lề, cách mép bản lề 22 mm (như cửa ngoài)
+  const hingeLeft = (e.hinge ?? 'left') === 'left';
+  const hx = hingeLeft ? 22 : cov.w - 22;
+  const n = hingeCount(cov.h);
+  for (let i = 0; i < n; i++) {
+    const cy = 120 + ((cov.h - 240) * i) / Math.max(1, n - 1);
+    holes.push(circle(hx, cy - 15, 6.5), circle(hx, cy + 15, 6.5));
+  }
+  // khoá ¼ vòng Ø16 phía đối diện bản lề, giữa chiều cao
+  holes.push(circle(hingeLeft ? cov.w - 25 : 25, cov.h / 2, 16));
+  return [
+    panelPart(
+      { id: 'cua-trong-2l', code: 'CUA-TRONG', name: 'Cửa trong (khoét lộ aptomat)', group: 'cua', material: e.material, thickness: e.thickness, qty: 1 },
+      { faceW: cov.w, faceH: cov.h, flanges: allSides([{ len: FLANGE, dir: 'UP' }]), bd, relief, holes },
+    ),
+  ];
+}
+
+/** Gân tăng cứng mặt sau cửa ngoài (thép U chấn 12-20-12), 2 thanh — tủ 2 lớp. */
+export function doorStiffeners(p: Project, layout: EnclosureLayout, bd: number): Part[] {
+  if (p.enclosure.doorType !== 'two_layer') return [];
+  const door = layout.leaves[0];
+  const L = door.rect.h - 120;
+  const s = profileStrip(L, [
+    { len: 12, dir: 'UP' },
+    { len: 20, dir: 'UP' },
+    { len: 12, dir: 'UP' },
+  ], bd);
+  const holes: Hole[] = [circle(20, s.width / 2, 5.5), circle(L - 20, s.width / 2, 5.5)];
+  return [makePart({ id: 'gan-cua', code: 'GAN-CUA', name: 'Gân cửa', group: 'cua', material: p.enclosure.material, thickness: p.enclosure.thickness, qty: 2 }, { outline: s.outline, holes, bendLines: s.bendLines, bbox: { minX: 0, minY: 0, maxX: L, maxY: s.width } })];
+}
+
 export function hingeCount(h: number): number {
   return h <= 1000 ? 2 : h <= 1800 ? 3 : 4;
 }
@@ -151,12 +258,16 @@ export function doorPanel(p: Project, cat: Catalog, layout: EnclosureLayout, lea
   }
   // khoá tay nắm Ø22
   if (leaf.hasLock) {
-    const lx = leaf.id === 'right' ? 35 : w - 35;
-    holes.push(circle(lx, h / 2, 22.5));
+    const lx = lockX(leaf);
+    const lock = e.lock ?? 'handle';
+    // khoá tay nắm: lỗ chữ nhật 26×80; khoá vuông Ø22.5; khoá chìa Ø19
+    if (lock === 'handle') holes.push(rectPoly(lx - 13, h / 2 - 40, 26, 80));
+    else holes.push(circle(lx, h / 2, lock === 'square' ? 22.5 : 19));
   }
   // lỗ khoét thiết bị (đổi từ toạ độ thân tủ → toạ độ mặt cửa)
   if (leaf.carriesCutouts) {
     for (const pd of p.devices) {
+      if (e.doorType === 'two_layer' && pd.mount === 'plate') continue;
       const def = cat.devices.find((d) => d.id === pd.deviceId);
       if (!def) continue;
       const cut = deviceCutout(pd, def);
@@ -313,6 +424,10 @@ export function generateParts(p: Project, cat: Catalog): Part[] {
     ...layout.leaves.map((l) => doorPanel(p, cat, layout, l, bd, relief)),
     mountingPlate(p, cat, layout, bdOf, relief),
     ...baseFrameParts(p, bdOf),
+    ...coverPanel(p, cat, layout, bd, relief),
+    ...doorStiffeners(p, layout, bd),
+    ...glandPlate(p),
+    ...bracketParts(p, bdOf),
     ...cChannelParts(p, bdOf),
     ...busbarParts(p, cat, layout),
   ];

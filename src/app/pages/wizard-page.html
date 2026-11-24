@@ -1,0 +1,94 @@
+<div class="wz">
+  <section class="viewer">
+    @if (wz.view() === '3d') {
+      @defer (on immediate) {
+        <app-view-3d [showroom]="true" [doorAngle]="wz.doorAngle()" [showWall]="!wz.hideWall()" [arrows]="wz.step() === 6 && wz.showArrows()" />
+      } @loading {
+        <div class="loading">Đang dựng mô hình 3D…</div>
+      }
+    } @else {
+      <app-front-2d [arrows]="wz.step() === 6 && wz.showArrows()" />
+    }
+
+    <div class="float tl">
+      <span class="fl-label">Góc mở cửa</span>
+      <div class="pill">
+        @for (a of angles; track a) {
+          <button [class.on]="wz.doorAngle() === a" (click)="wz.doorAngle.set(a)" [disabled]="wz.view() === '2d'">{{ a }}°</button>
+        }
+      </div>
+    </div>
+    @if (wz.view() === '3d') {
+      <button class="float tr pill-btn" (click)="wz.hideWall.set(!wz.hideWall())">{{ wz.hideWall() ? 'Hiện tường' : 'Ẩn tường' }}</button>
+    }
+    <div class="float bl pill">
+      <button [class.on]="wz.view() === '3d'" (click)="wz.view.set('3d')">3D</button>
+      <button [class.on]="wz.view() === '2d'" (click)="wz.view.set('2d')">Mặt trước</button>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <header class="ph">
+      <div class="brand">
+        <a class="home" routerLink="/" [queryParams]="{ chon: 1 }" title="Về trang chọn giao diện"><b>XUÂN THÀNH</b></a>
+        <span class="links">
+          <a routerLink="/cau-hinh/moi" class="new" title="Bắt đầu cấu hình mới">＋ Mới</a>
+          <a [routerLink]="['/nang-cao', store.project().id]" class="detail" title="Mở đơn này ở giao diện đầy đủ (Detail View)">Detail View ↗</a>
+        </span>
+      </div>
+      <div class="nav">
+        <button class="arrow" (click)="wz.prev()" [disabled]="wz.step() === 1" aria-label="Bước trước">‹</button>
+        <div class="title">
+          <span class="kicker">BƯỚC {{ wz.step() }}/8</span>
+          <h2>{{ wz.current().title }}</h2>
+        </div>
+        <button class="arrow" (click)="wz.next()" [disabled]="wz.step() === 8 || wz.step() >= wz.maxVisited() + 1" aria-label="Bước sau">›</button>
+      </div>
+      <div class="dots" role="tablist">
+        @for (s of wz.steps; track s.n) {
+          <button
+            class="dot"
+            [class.cur]="s.n === wz.step()"
+            [class.done]="s.n <= wz.maxVisited() && s.n !== wz.step()"
+            [class.err]="wz.errorSteps().has(s.n)"
+            [disabled]="s.n > wz.maxVisited()"
+            [title]="s.n + '. ' + s.title"
+            (click)="wz.go(s.n)"
+          ></button>
+        }
+      </div>
+    </header>
+
+    <div class="body">
+      @for (s of [wz.step()]; track s) {
+        <div class="slide" [class.back]="wz.dir() < 0">
+          @switch (s) {
+            @case (1) { <app-step-type /> }
+            @case (2) { <app-step-size /> }
+            @case (3) { <app-step-material /> }
+            @case (4) { <app-step-protection /> }
+            @case (5) { <app-step-door /> }
+            @case (6) { <app-step-devices /> }
+            @case (7) { <app-step-busbar /> }
+            @case (8) { <app-step-order /> }
+          }
+        </div>
+      }
+    </div>
+
+    <footer class="pf">
+      <div class="price">
+        <span class="muted">Giá tạm tính</span>
+        <b><app-price-counter [value]="store.bom().total" /></b>
+      </div>
+      <div class="act">
+        <button class="btn lg back-m" (click)="wz.prev()" [disabled]="wz.step() === 1" aria-label="Bước trước">‹</button>
+        @if (wz.step() < 8) {
+          <button class="btn primary lg main" (click)="primary()">Tiếp tục →</button>
+        } @else {
+          <button class="btn go lg main" (click)="primary()" [disabled]="wz.hasErrors()">✓ Hoàn tất đơn</button>
+        }
+      </div>
+    </footer>
+  </aside>
+</div>

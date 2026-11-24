@@ -1,0 +1,131 @@
+@if (loaded()) {
+  <div class="rp">
+    <header class="top">
+      <div class="ttl">
+        <h1>Đơn <span class="mono">{{ p().orderCode }}</span></h1>
+        @if (p().status === 'done') {
+          <span class="st ok">● Hoàn tất</span>
+        } @else {
+          <span class="st draft">● Nháp</span>
+        }
+      </div>
+      <div class="acts">
+        <a class="btn" [routerLink]="['/cau-hinh', p().id]">Mở lại cấu hình (Wizard)</a>
+        <a class="btn" [routerLink]="['/nang-cao', p().id]">Detail View</a>
+        <a class="btn ghost" routerLink="/cau-hinh/moi">＋ Đơn mới</a>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card conf">
+        <div class="img">
+          @if (p().thumbnail) {
+            <img [src]="p().thumbnail" alt="Ảnh render tủ" />
+          } @else {
+            <span class="ph">Đang dựng ảnh…</span>
+          }
+        </div>
+        <div class="info">
+          <div class="price">{{ money(store.bom().total) }} <small>chưa VAT</small></div>
+          <p class="desc">{{ desc() }}</p>
+          <div class="meta">
+            <span><b>Khách:</b> {{ p().customer || '—' }}{{ p().contact ? ' · ' + p().contact : '' }}</span>
+            <span><b>Ngày:</b> {{ created() }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card prog">
+        <h3>Tiến độ tạo file</h3>
+        @for (j of jobs(); track j.key) {
+          <div class="job">
+            <span>{{ j.label }}</span>
+            <div class="bar"><i [style.width.%]="j.pct" [class.done]="j.pct >= 100"></i></div>
+          </div>
+        }
+      </section>
+
+      <section class="card files">
+        <h3>File &amp; tài liệu</h3>
+        <div class="frow">
+          <span class="ic pdf">PDF</span><span class="nm">Bản vẽ tổng thể <small>A3, khung tên</small></span>
+          <span class="state" [class.ok]="ready()['pdf']">{{ ready()['pdf'] ? 'Sẵn sàng' : 'Đang tạo…' }}</span>
+          <button class="lnk" [disabled]="!ready()['pdf']" (click)="ex.print()">Tải</button>
+        </div>
+        <div class="frow">
+          <span class="ic zip">ZIP</span>
+          <span class="nm">DXF từng chi tiết ({{ store.parts().length }} file) <button class="exp" (click)="dxfOpen.set(!dxfOpen())">{{ dxfOpen() ? 'thu gọn ▴' : 'xem lẻ ▾' }}</button></span>
+          <span class="state" [class.ok]="ready()['dxf']">{{ ready()['dxf'] ? 'Sẵn sàng' : 'Đang tạo…' }}</span>
+          <button class="lnk" [disabled]="!ready()['dxf']" (click)="ex.downloadDxfZip()">Tải</button>
+        </div>
+        @if (dxfOpen()) {
+          <div class="sub">
+            @for (pt of store.parts(); track pt.id) {
+              <div class="srow">
+                <span class="mono">{{ fname(pt) }}</span>
+                <button class="lnk" [disabled]="!ready()['dxf']" (click)="ex.downloadPartDxf(pt)">Tải</button>
+              </div>
+            }
+          </div>
+        }
+        <div class="frow">
+          <span class="ic dxf">DXF</span><span class="nm">DXF gộp <small>tất cả chi tiết xếp rời, có nhãn tên</small></span>
+          <span class="state" [class.ok]="ready()['dxf']">{{ ready()['dxf'] ? 'Sẵn sàng' : 'Đang tạo…' }}</span>
+          <button class="lnk" [disabled]="!ready()['dxf']" (click)="ex.downloadCombinedDxf()">Tải</button>
+        </div>
+        <div class="frow">
+          <span class="ic xlsx">XLSX</span><span class="nm">BOM vật tư <small>Excel</small></span>
+          <span class="state" [class.ok]="ready()['docs']">{{ ready()['docs'] ? 'Sẵn sàng' : 'Đang tạo…' }}</span>
+          <button class="lnk" [disabled]="!ready()['docs']" (click)="ex.downloadBomXlsx()">Tải</button>
+        </div>
+        <div class="frow">
+          <span class="ic csv">CSV</span><span class="nm">BOM vật tư <small>CSV (UTF-8)</small></span>
+          <span class="state" [class.ok]="ready()['docs']">{{ ready()['docs'] ? 'Sẵn sàng' : 'Đang tạo…' }}</span>
+          <button class="lnk" [disabled]="!ready()['docs']" (click)="ex.downloadBomCsv()">Tải</button>
+        </div>
+        <div class="frow">
+          <span class="ic pdf">PDF</span><span class="nm">Báo giá cho khách <small>A4, có VAT</small></span>
+          <span class="state" [class.ok]="ready()['docs']">{{ ready()['docs'] ? 'Sẵn sàng' : 'Đang tạo…' }}</span>
+          <button class="lnk" [disabled]="!ready()['docs']" (click)="ex.printQuote()">Tải</button>
+        </div>
+        <p class="hint">PDF mở hộp thoại in của trình duyệt → chọn <b>Lưu thành PDF</b>.</p>
+      </section>
+
+      <section class="card nest">
+        <h3>Sắp tôn <small class="muted">khổ {{ p().sheetSize.replace('x', '×') }} · demo theo hình bao</small></h3>
+        @for (g of store.nesting(); track g.key) {
+          <div class="ng">
+            <span class="nm">{{ mat(g.material) }} {{ g.thickness }} mm</span>
+            <span class="sheets"><b>{{ g.sheets.length }}</b> tấm</span>
+            <div class="bar"><i class="done" [style.width.%]="pct(g.utilization)"></i></div>
+            <span class="pc">{{ pct(g.utilization) }}%</span>
+          </div>
+          @if (g.unplaced.length) {
+            <div class="w-warn">⚠ {{ g.unplaced.length }} chi tiết vượt khổ tôn: {{ g.unplaced.join(', ') }}</div>
+          }
+        }
+        <div class="nsum">
+          Tổng: <b>{{ totalSheets() }} tấm tôn</b> · tôn {{ store.bom().sheetAreaM2 }} m² ({{ store.bom().sheetKg }} kg) · đồng {{ store.bom().copperKg }} kg
+          · <a [routerLink]="['/nang-cao', p().id]">xem sơ đồ sắp tôn ở Detail View ↗</a>
+        </div>
+      </section>
+
+      <section class="card orders">
+        <h3>Đơn đã lưu</h3>
+        <app-order-list [limit]="8" [currentId]="p().id" />
+      </section>
+
+      <section class="card flat">
+        <h3>
+          Xem trước trải phẳng ·
+          <select class="psel" (change)="store.selectedPartId.set($any($event.target).value)">
+            @for (pt of store.parts(); track pt.id) {
+              <option [value]="pt.id" [selected]="flatPart()?.id === pt.id">{{ pt.name }} ({{ pt.thickness }}mm)</option>
+            }
+          </select>
+        </h3>
+        <div class="cnc"><app-flat-view [compact]="true" /></div>
+      </section>
+    </div>
+  </div>
+}

@@ -65,7 +65,7 @@ export interface BBox {
   maxY: number;
 }
 
-export type PartMaterial = 'SPCC' | 'INOX304' | 'CU';
+export type PartMaterial = 'SPCC' | 'GALV' | 'INOX304' | 'INOX201' | 'CU';
 
 export type PartGroup = 'vo' | 'cua' | 'tam-de' | 'khung-de' | 'thanh-c' | 'thanh-cai';
 

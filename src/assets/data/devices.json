@@ -1,31 +1,826 @@
 {
-  "_note": "SỐ MẪU — kích thước, lỗ bắt vít, lỗ khoét và giá chỉ để demo. CẦN THAY bằng datasheet thật của hãng trước khi sản xuất. Toạ độ plateHoles tính từ góc dưới trái thiết bị (chưa xoay), đơn vị mm.",
-  "devices": [
-    { "id": "acb-3p-800", "brand": "LS", "series": "Metasol", "model": "AN-08D3-08H", "name": "ACB 3P 800A", "type": "ACB", "category": "ACB", "ratedCurrent": 800, "poles": 3, "size": { "w": 280, "h": 322, "d": 290 }, "mount": "plate", "doorCutout": { "shape": "rect", "w": 250, "h": 280 }, "cutoutDefault": true, "plateHoles": [{ "x": 30, "y": 20, "d": 10 }, { "x": 250, "y": 20, "d": 10 }, { "x": 30, "y": 140, "d": 10 }, { "x": 250, "y": 140, "d": 10 }], "clearance": 50, "price": 45000000, "isBreaker": true },
-    { "id": "acb-4p-1600", "brand": "LS", "series": "Metasol", "model": "AN-16D4-16H", "name": "ACB 4P 1600A", "type": "ACB", "category": "ACB", "ratedCurrent": 1600, "poles": 4, "size": { "w": 360, "h": 322, "d": 290 }, "mount": "plate", "doorCutout": { "shape": "rect", "w": 330, "h": 280 }, "cutoutDefault": true, "plateHoles": [{ "x": 30, "y": 20, "d": 10 }, { "x": 330, "y": 20, "d": 10 }, { "x": 30, "y": 140, "d": 10 }, { "x": 330, "y": 140, "d": 10 }], "clearance": 50, "price": 98000000, "isBreaker": true },
-
-    { "id": "mccb-3p-100", "brand": "LS", "series": "Metasol", "model": "ABN103c 100A", "name": "MCCB 3P 100A", "type": "MCCB", "category": "MCCB/MCB", "ratedCurrent": 100, "poles": 3, "size": { "w": 75, "h": 130, "d": 60 }, "mount": "plate", "doorCutout": { "shape": "rect", "w": 56, "h": 70 }, "plateHoles": [{ "x": 37.5, "y": 12, "d": 4.5 }, { "x": 37.5, "y": 118, "d": 4.5 }], "clearance": 20, "price": 1250000, "isBreaker": true },
-    { "id": "mccb-4p-100", "brand": "LS", "series": "Metasol", "model": "ABN104c 100A", "name": "MCCB 4P 100A", "type": "MCCB", "category": "MCCB/MCB", "ratedCurrent": 100, "poles": 4, "size": { "w": 100, "h": 130, "d": 60 }, "mount": "plate", "doorCutout": { "shape": "rect", "w": 80, "h": 70 }, "plateHoles": [{ "x": 50, "y": 12, "d": 4.5 }, { "x": 50, "y": 118, "d": 4.5 }], "clearance": 20, "price": 1650000, "isBreaker": true },
-    { "id": "mccb-3p-250", "brand": "LS", "series": "Metasol", "model": "ABS203c 250A", "name": "MCCB 3P 250A", "type": "MCCB", "category": "MCCB/MCB", "ratedCurrent": 250, "poles": 3, "size": { "w": 105, "h": 165, "d": 60 }, "mount": "plate", "doorCutout": { "shape": "rect", "w": 70, "h": 90 }, "plateHoles": [{ "x": 52.5, "y": 14, "d": 5.5 }, { "x": 52.5, "y": 151, "d": 5.5 }], "clearance": 20, "price": 3900000, "isBreaker": true },
-    { "id": "mccb-4p-250", "brand": "LS", "series": "Metasol", "model": "ABS204c 250A", "name": "MCCB 4P 250A", "type": "MCCB", "category": "MCCB/MCB", "ratedCurrent": 250, "poles": 4, "size": { "w": 140, "h": 165, "d": 60 }, "mount": "plate", "doorCutout": { "shape": "rect", "w": 105, "h": 90 }, "plateHoles": [{ "x": 70, "y": 14, "d": 5.5 }, { "x": 70, "y": 151, "d": 5.5 }], "clearance": 20, "price": 4900000, "isBreaker": true },
-    { "id": "mccb-3p-400", "brand": "LS", "series": "Metasol", "model": "ABS403c 400A", "name": "MCCB 3P 400A", "type": "MCCB", "category": "MCCB/MCB", "ratedCurrent": 400, "poles": 3, "size": { "w": 140, "h": 257, "d": 109 }, "mount": "plate", "doorCutout": { "shape": "rect", "w": 100, "h": 120 }, "plateHoles": [{ "x": 70, "y": 16, "d": 6.5 }, { "x": 70, "y": 241, "d": 6.5 }], "clearance": 30, "price": 9800000, "isBreaker": true },
-    { "id": "mccb-3p-630", "brand": "LS", "series": "Metasol", "model": "ABS603c 630A", "name": "MCCB 3P 630A", "type": "MCCB", "category": "MCCB/MCB", "ratedCurrent": 630, "poles": 3, "size": { "w": 210, "h": 275, "d": 109 }, "mount": "plate", "doorCutout": { "shape": "rect", "w": 150, "h": 130 }, "plateHoles": [{ "x": 70, "y": 18, "d": 6.5 }, { "x": 140, "y": 18, "d": 6.5 }, { "x": 70, "y": 257, "d": 6.5 }, { "x": 140, "y": 257, "d": 6.5 }], "clearance": 30, "price": 16500000, "isBreaker": true },
-    { "id": "mcb-1p-16", "brand": "LS", "series": "BKN", "model": "BKN 1P C16", "name": "MCB 1P 16A", "type": "MCB", "category": "MCCB/MCB", "ratedCurrent": 16, "poles": 1, "size": { "w": 18, "h": 81, "d": 73 }, "mount": "plate", "plateHoles": [], "clearance": 20, "price": 85000, "isBreaker": true, "din": true },
-    { "id": "mcb-3p-32", "brand": "LS", "series": "BKN", "model": "BKN 3P C32", "name": "MCB 3P 32A", "type": "MCB", "category": "MCCB/MCB", "ratedCurrent": 32, "poles": 3, "size": { "w": 54, "h": 81, "d": 73 }, "mount": "plate", "plateHoles": [], "clearance": 20, "price": 320000, "isBreaker": true, "din": true },
-
-    { "id": "meter-v", "brand": "Sew", "series": "BE-96", "model": "BE-96 0-500V", "name": "Đồng hồ Volt 96×96", "type": "METER_V", "category": "Đo lường", "size": { "w": 96, "h": 96, "d": 60 }, "mount": "door", "doorCutout": { "shape": "rect", "w": 92, "h": 92 }, "plateHoles": [], "clearance": 15, "price": 220000 },
-    { "id": "meter-a", "brand": "Sew", "series": "BE-96", "model": "BE-96 200/5A", "name": "Đồng hồ Ampe 96×96", "type": "METER_A", "category": "Đo lường", "size": { "w": 96, "h": 96, "d": 60 }, "mount": "door", "doorCutout": { "shape": "rect", "w": 92, "h": 92 }, "plateHoles": [], "clearance": 15, "price": 220000 },
-    { "id": "meter-multi", "brand": "Selec", "series": "MFM", "model": "MFM383A", "name": "Đồng hồ đa năng 96×96", "type": "METER_MULTI", "category": "Đo lường", "size": { "w": 96, "h": 96, "d": 75 }, "mount": "door", "doorCutout": { "shape": "rect", "w": 92, "h": 92 }, "plateHoles": [], "clearance": 15, "price": 2300000 },
-    { "id": "ct-200", "brand": "Emic", "series": "CT", "model": "CT 200/5A", "name": "Biến dòng CT 200/5A", "type": "CT", "category": "Đo lường", "size": { "w": 70, "h": 80, "d": 35 }, "mount": "plate", "plateHoles": [{ "x": 10, "y": 10, "d": 4.5 }, { "x": 60, "y": 10, "d": 4.5 }], "clearance": 10, "price": 180000 },
-
-    { "id": "lamp-red", "brand": "Hanyoung", "series": "CR-252", "model": "CR-252 đỏ", "name": "Đèn báo Ø22 đỏ", "type": "PILOT_LAMP", "category": "Điều khiển & báo", "size": { "w": 30, "h": 30, "d": 50 }, "mount": "door", "doorCutout": { "shape": "circle", "d": 22.5 }, "plateHoles": [], "clearance": 10, "price": 45000, "color": "#E53935" },
-    { "id": "lamp-yellow", "brand": "Hanyoung", "series": "CR-252", "model": "CR-252 vàng", "name": "Đèn báo Ø22 vàng", "type": "PILOT_LAMP", "category": "Điều khiển & báo", "size": { "w": 30, "h": 30, "d": 50 }, "mount": "door", "doorCutout": { "shape": "circle", "d": 22.5 }, "plateHoles": [], "clearance": 10, "price": 45000, "color": "#FDD835" },
-    { "id": "lamp-blue", "brand": "Hanyoung", "series": "CR-252", "model": "CR-252 xanh", "name": "Đèn báo Ø22 xanh", "type": "PILOT_LAMP", "category": "Điều khiển & báo", "size": { "w": 30, "h": 30, "d": 50 }, "mount": "door", "doorCutout": { "shape": "circle", "d": 22.5 }, "plateHoles": [], "clearance": 10, "price": 45000, "color": "#1E88E5" },
-    { "id": "button-22", "brand": "Hanyoung", "series": "CR-251", "model": "CR-251 xanh lá", "name": "Nút nhấn Ø22", "type": "PUSH_BUTTON", "category": "Điều khiển & báo", "size": { "w": 30, "h": 30, "d": 50 }, "mount": "door", "doorCutout": { "shape": "circle", "d": 22.5 }, "plateHoles": [], "clearance": 10, "price": 55000, "color": "#43A047" },
-    { "id": "selector-v", "brand": "Kaise", "series": "SW", "model": "SW Volt 7 vị trí", "name": "Công tắc chuyển mạch Volt", "type": "SELECTOR", "category": "Điều khiển & báo", "size": { "w": 48, "h": 48, "d": 60 }, "mount": "door", "doorCutout": { "shape": "circle", "d": 22.5 }, "plateHoles": [], "clearance": 10, "price": 120000 },
-    { "id": "pfr-6", "brand": "Mikro", "series": "PFR", "model": "PFR60 6 cấp", "name": "Bộ điều khiển tụ bù 6 cấp", "type": "PFR", "category": "Tụ bù & contactor", "size": { "w": 144, "h": 144, "d": 80 }, "mount": "door", "doorCutout": { "shape": "rect", "w": 138, "h": 138 }, "plateHoles": [], "clearance": 15, "price": 3200000 },
-    { "id": "contactor-40", "brand": "LS", "series": "Metasol", "model": "MC-40a", "name": "Contactor 3P 40A", "type": "CONTACTOR", "category": "Tụ bù & contactor", "ratedCurrent": 40, "poles": 3, "size": { "w": 55, "h": 85, "d": 95 }, "mount": "plate", "plateHoles": [{ "x": 27.5, "y": 10, "d": 4.5 }, { "x": 27.5, "y": 75, "d": 4.5 }], "clearance": 10, "price": 650000 },
-    { "id": "relay-phase", "brand": "Mikro", "series": "MX", "model": "MX200A", "name": "Relay bảo vệ pha", "type": "PHASE_RELAY", "category": "Điều khiển & báo", "size": { "w": 36, "h": 80, "d": 65 }, "mount": "plate", "plateHoles": [], "clearance": 10, "price": 750000, "din": true },
-    { "id": "cap-20", "brand": "Samwha", "series": "SMB", "model": "SMB 20kVAr 440V", "name": "Tụ bù 3P 20kVAr", "type": "CAPACITOR", "category": "Tụ bù & contactor", "size": { "w": 116, "h": 230, "d": 116 }, "mount": "plate", "plateHoles": [{ "x": 58, "y": 15, "d": 12.5 }], "clearance": 25, "price": 1900000 }
-  ]
+ "_note": "SỐ MẪU — kích thước, lỗ bắt vít, lỗ khoét và giá chỉ để demo. CẦN THAY bằng datasheet thật của hãng trước khi sản xuất. Toạ độ plateHoles tính từ góc dưới trái thiết bị (chưa xoay), đơn vị mm.",
+ "devices": [
+  {
+   "id": "acb-3p-800",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "AN-08D3-08H",
+   "name": "ACB 3P 800A",
+   "type": "ACB",
+   "category": "ACB",
+   "ratedCurrent": 800,
+   "poles": 3,
+   "size": {
+    "w": 280,
+    "h": 322,
+    "d": 290
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 250,
+    "h": 280
+   },
+   "cutoutDefault": true,
+   "plateHoles": [
+    {
+     "x": 30,
+     "y": 20,
+     "d": 10
+    },
+    {
+     "x": 250,
+     "y": 20,
+     "d": 10
+    },
+    {
+     "x": 30,
+     "y": 140,
+     "d": 10
+    },
+    {
+     "x": 250,
+     "y": 140,
+     "d": 10
+    }
+   ],
+   "clearance": 50,
+   "price": 45000000,
+   "isBreaker": true
+  },
+  {
+   "id": "acb-4p-1600",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "AN-16D4-16H",
+   "name": "ACB 4P 1600A",
+   "type": "ACB",
+   "category": "ACB",
+   "ratedCurrent": 1600,
+   "poles": 4,
+   "size": {
+    "w": 360,
+    "h": 322,
+    "d": 290
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 330,
+    "h": 280
+   },
+   "cutoutDefault": true,
+   "plateHoles": [
+    {
+     "x": 30,
+     "y": 20,
+     "d": 10
+    },
+    {
+     "x": 330,
+     "y": 20,
+     "d": 10
+    },
+    {
+     "x": 30,
+     "y": 140,
+     "d": 10
+    },
+    {
+     "x": 330,
+     "y": 140,
+     "d": 10
+    }
+   ],
+   "clearance": 50,
+   "price": 98000000,
+   "isBreaker": true
+  },
+  {
+   "id": "mccb-3p-100",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "ABN103c 100A",
+   "name": "MCCB 3P 100A",
+   "type": "MCCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 100,
+   "poles": 3,
+   "size": {
+    "w": 75,
+    "h": 130,
+    "d": 60
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 56,
+    "h": 70
+   },
+   "plateHoles": [
+    {
+     "x": 37.5,
+     "y": 12,
+     "d": 4.5
+    },
+    {
+     "x": 37.5,
+     "y": 118,
+     "d": 4.5
+    }
+   ],
+   "clearance": 20,
+   "price": 1250000,
+   "isBreaker": true
+  },
+  {
+   "id": "mccb-4p-100",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "ABN104c 100A",
+   "name": "MCCB 4P 100A",
+   "type": "MCCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 100,
+   "poles": 4,
+   "size": {
+    "w": 100,
+    "h": 130,
+    "d": 60
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 80,
+    "h": 70
+   },
+   "plateHoles": [
+    {
+     "x": 50,
+     "y": 12,
+     "d": 4.5
+    },
+    {
+     "x": 50,
+     "y": 118,
+     "d": 4.5
+    }
+   ],
+   "clearance": 20,
+   "price": 1650000,
+   "isBreaker": true
+  },
+  {
+   "id": "mccb-3p-250",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "ABS203c 250A",
+   "name": "MCCB 3P 250A",
+   "type": "MCCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 250,
+   "poles": 3,
+   "size": {
+    "w": 105,
+    "h": 165,
+    "d": 60
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 70,
+    "h": 90
+   },
+   "plateHoles": [
+    {
+     "x": 52.5,
+     "y": 14,
+     "d": 5.5
+    },
+    {
+     "x": 52.5,
+     "y": 151,
+     "d": 5.5
+    }
+   ],
+   "clearance": 20,
+   "price": 3900000,
+   "isBreaker": true
+  },
+  {
+   "id": "mccb-4p-250",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "ABS204c 250A",
+   "name": "MCCB 4P 250A",
+   "type": "MCCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 250,
+   "poles": 4,
+   "size": {
+    "w": 140,
+    "h": 165,
+    "d": 60
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 105,
+    "h": 90
+   },
+   "plateHoles": [
+    {
+     "x": 70,
+     "y": 14,
+     "d": 5.5
+    },
+    {
+     "x": 70,
+     "y": 151,
+     "d": 5.5
+    }
+   ],
+   "clearance": 20,
+   "price": 4900000,
+   "isBreaker": true
+  },
+  {
+   "id": "mccb-3p-400",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "ABS403c 400A",
+   "name": "MCCB 3P 400A",
+   "type": "MCCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 400,
+   "poles": 3,
+   "size": {
+    "w": 140,
+    "h": 257,
+    "d": 109
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 100,
+    "h": 120
+   },
+   "plateHoles": [
+    {
+     "x": 70,
+     "y": 16,
+     "d": 6.5
+    },
+    {
+     "x": 70,
+     "y": 241,
+     "d": 6.5
+    }
+   ],
+   "clearance": 30,
+   "price": 9800000,
+   "isBreaker": true
+  },
+  {
+   "id": "mccb-3p-630",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "ABS603c 630A",
+   "name": "MCCB 3P 630A",
+   "type": "MCCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 630,
+   "poles": 3,
+   "size": {
+    "w": 210,
+    "h": 275,
+    "d": 109
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 150,
+    "h": 130
+   },
+   "plateHoles": [
+    {
+     "x": 70,
+     "y": 18,
+     "d": 6.5
+    },
+    {
+     "x": 140,
+     "y": 18,
+     "d": 6.5
+    },
+    {
+     "x": 70,
+     "y": 257,
+     "d": 6.5
+    },
+    {
+     "x": 140,
+     "y": 257,
+     "d": 6.5
+    }
+   ],
+   "clearance": 30,
+   "price": 16500000,
+   "isBreaker": true
+  },
+  {
+   "id": "mcb-1p-16",
+   "brand": "LS",
+   "series": "BKN",
+   "model": "BKN 1P C16",
+   "name": "MCB 1P 16A",
+   "type": "MCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 16,
+   "poles": 1,
+   "size": {
+    "w": 18,
+    "h": 81,
+    "d": 73
+   },
+   "mount": "plate",
+   "plateHoles": [],
+   "clearance": 20,
+   "price": 85000,
+   "isBreaker": true,
+   "din": true
+  },
+  {
+   "id": "mcb-3p-32",
+   "brand": "LS",
+   "series": "BKN",
+   "model": "BKN 3P C32",
+   "name": "MCB 3P 32A",
+   "type": "MCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 32,
+   "poles": 3,
+   "size": {
+    "w": 54,
+    "h": 81,
+    "d": 73
+   },
+   "mount": "plate",
+   "plateHoles": [],
+   "clearance": 20,
+   "price": 320000,
+   "isBreaker": true,
+   "din": true
+  },
+  {
+   "id": "meter-v",
+   "brand": "Sew",
+   "series": "BE-96",
+   "model": "BE-96 0-500V",
+   "name": "Đồng hồ Volt 96×96",
+   "type": "METER_V",
+   "category": "Đo lường",
+   "size": {
+    "w": 96,
+    "h": 96,
+    "d": 60
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 92,
+    "h": 92
+   },
+   "plateHoles": [],
+   "clearance": 15,
+   "price": 220000
+  },
+  {
+   "id": "meter-a",
+   "brand": "Sew",
+   "series": "BE-96",
+   "model": "BE-96 200/5A",
+   "name": "Đồng hồ Ampe 96×96",
+   "type": "METER_A",
+   "category": "Đo lường",
+   "size": {
+    "w": 96,
+    "h": 96,
+    "d": 60
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 92,
+    "h": 92
+   },
+   "plateHoles": [],
+   "clearance": 15,
+   "price": 220000
+  },
+  {
+   "id": "meter-multi",
+   "brand": "Selec",
+   "series": "MFM",
+   "model": "MFM383A",
+   "name": "Đồng hồ đa năng 96×96",
+   "type": "METER_MULTI",
+   "category": "Đo lường",
+   "size": {
+    "w": 96,
+    "h": 96,
+    "d": 75
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 92,
+    "h": 92
+   },
+   "plateHoles": [],
+   "clearance": 15,
+   "price": 2300000
+  },
+  {
+   "id": "ct-200",
+   "brand": "Emic",
+   "series": "CT",
+   "model": "CT 200/5A",
+   "name": "Biến dòng CT 200/5A",
+   "type": "CT",
+   "category": "Đo lường",
+   "size": {
+    "w": 70,
+    "h": 80,
+    "d": 35
+   },
+   "mount": "plate",
+   "plateHoles": [
+    {
+     "x": 10,
+     "y": 10,
+     "d": 4.5
+    },
+    {
+     "x": 60,
+     "y": 10,
+     "d": 4.5
+    }
+   ],
+   "clearance": 10,
+   "price": 180000
+  },
+  {
+   "id": "lamp-red",
+   "brand": "Hanyoung",
+   "series": "CR-252",
+   "model": "CR-252 đỏ",
+   "name": "Đèn báo Ø22 đỏ",
+   "type": "PILOT_LAMP",
+   "category": "Điều khiển & báo",
+   "size": {
+    "w": 30,
+    "h": 30,
+    "d": 50
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "circle",
+    "d": 22.5
+   },
+   "plateHoles": [],
+   "clearance": 10,
+   "price": 45000,
+   "color": "#E53935"
+  },
+  {
+   "id": "lamp-yellow",
+   "brand": "Hanyoung",
+   "series": "CR-252",
+   "model": "CR-252 vàng",
+   "name": "Đèn báo Ø22 vàng",
+   "type": "PILOT_LAMP",
+   "category": "Điều khiển & báo",
+   "size": {
+    "w": 30,
+    "h": 30,
+    "d": 50
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "circle",
+    "d": 22.5
+   },
+   "plateHoles": [],
+   "clearance": 10,
+   "price": 45000,
+   "color": "#FDD835"
+  },
+  {
+   "id": "lamp-blue",
+   "brand": "Hanyoung",
+   "series": "CR-252",
+   "model": "CR-252 xanh",
+   "name": "Đèn báo Ø22 xanh",
+   "type": "PILOT_LAMP",
+   "category": "Điều khiển & báo",
+   "size": {
+    "w": 30,
+    "h": 30,
+    "d": 50
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "circle",
+    "d": 22.5
+   },
+   "plateHoles": [],
+   "clearance": 10,
+   "price": 45000,
+   "color": "#1E88E5"
+  },
+  {
+   "id": "button-22",
+   "brand": "Hanyoung",
+   "series": "CR-251",
+   "model": "CR-251 xanh lá",
+   "name": "Nút nhấn Ø22",
+   "type": "PUSH_BUTTON",
+   "category": "Điều khiển & báo",
+   "size": {
+    "w": 30,
+    "h": 30,
+    "d": 50
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "circle",
+    "d": 22.5
+   },
+   "plateHoles": [],
+   "clearance": 10,
+   "price": 55000,
+   "color": "#43A047"
+  },
+  {
+   "id": "selector-v",
+   "brand": "Kaise",
+   "series": "SW",
+   "model": "SW Volt 7 vị trí",
+   "name": "Công tắc chuyển mạch Volt",
+   "type": "SELECTOR",
+   "category": "Điều khiển & báo",
+   "size": {
+    "w": 48,
+    "h": 48,
+    "d": 60
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "circle",
+    "d": 22.5
+   },
+   "plateHoles": [],
+   "clearance": 10,
+   "price": 120000
+  },
+  {
+   "id": "pfr-6",
+   "brand": "Mikro",
+   "series": "PFR",
+   "model": "PFR60 6 cấp",
+   "name": "Bộ điều khiển tụ bù 6 cấp",
+   "type": "PFR",
+   "category": "Tụ bù & contactor",
+   "size": {
+    "w": 144,
+    "h": 144,
+    "d": 80
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 138,
+    "h": 138
+   },
+   "plateHoles": [],
+   "clearance": 15,
+   "price": 3200000
+  },
+  {
+   "id": "contactor-40",
+   "brand": "LS",
+   "series": "Metasol",
+   "model": "MC-40a",
+   "name": "Contactor 3P 40A",
+   "type": "CONTACTOR",
+   "category": "Tụ bù & contactor",
+   "ratedCurrent": 40,
+   "poles": 3,
+   "size": {
+    "w": 55,
+    "h": 85,
+    "d": 95
+   },
+   "mount": "plate",
+   "plateHoles": [
+    {
+     "x": 27.5,
+     "y": 10,
+     "d": 4.5
+    },
+    {
+     "x": 27.5,
+     "y": 75,
+     "d": 4.5
+    }
+   ],
+   "clearance": 10,
+   "price": 650000
+  },
+  {
+   "id": "relay-phase",
+   "brand": "Mikro",
+   "series": "MX",
+   "model": "MX200A",
+   "name": "Relay bảo vệ pha",
+   "type": "PHASE_RELAY",
+   "category": "Điều khiển & báo",
+   "size": {
+    "w": 36,
+    "h": 80,
+    "d": 65
+   },
+   "mount": "plate",
+   "plateHoles": [],
+   "clearance": 10,
+   "price": 750000,
+   "din": true
+  },
+  {
+   "id": "cap-20",
+   "brand": "Samwha",
+   "series": "SMB",
+   "model": "SMB 20kVAr 440V",
+   "name": "Tụ bù 3P 20kVAr",
+   "type": "CAPACITOR",
+   "category": "Tụ bù & contactor",
+   "size": {
+    "w": 116,
+    "h": 230,
+    "d": 116
+   },
+   "mount": "plate",
+   "plateHoles": [
+    {
+     "x": 58,
+     "y": 15,
+     "d": 12.5
+    }
+   ],
+   "clearance": 25,
+   "price": 1900000
+  },
+  {
+   "id": "mccb-4p-100-cvs",
+   "brand": "Schneider",
+   "series": "EasyPact CVS",
+   "model": "CVS100F 4P 100A",
+   "name": "MCCB 4P 100A (Schneider)",
+   "type": "MCCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 100,
+   "poles": 4,
+   "size": {
+    "w": 140,
+    "h": 161,
+    "d": 86
+   },
+   "mount": "plate",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 95,
+    "h": 85
+   },
+   "plateHoles": [
+    {
+     "x": 45,
+     "y": 14,
+     "d": 5.5
+    },
+    {
+     "x": 95,
+     "y": 14,
+     "d": 5.5
+    },
+    {
+     "x": 45,
+     "y": 147,
+     "d": 5.5
+    },
+    {
+     "x": 95,
+     "y": 147,
+     "d": 5.5
+    }
+   ],
+   "clearance": 20,
+   "price": 4200000,
+   "isBreaker": true
+  },
+  {
+   "id": "mcb-2p-6",
+   "brand": "LS",
+   "series": "BKN",
+   "model": "BKN 2P C6",
+   "name": "MCB 2P 6A",
+   "type": "MCB",
+   "category": "MCCB/MCB",
+   "ratedCurrent": 6,
+   "poles": 2,
+   "size": {
+    "w": 36,
+    "h": 81,
+    "d": 73
+   },
+   "mount": "plate",
+   "plateHoles": [],
+   "clearance": 20,
+   "price": 190000,
+   "isBreaker": true,
+   "din": true
+  },
+  {
+   "id": "fuse-3p",
+   "brand": "Chint",
+   "series": "RT18",
+   "model": "RT18-32 3P",
+   "name": "Cầu chì 3 cực 32A",
+   "type": "FUSE",
+   "category": "Điều khiển & báo",
+   "size": {
+    "w": 54,
+    "h": 81,
+    "d": 70
+   },
+   "mount": "plate",
+   "plateHoles": [],
+   "clearance": 20,
+   "price": 180000,
+   "din": true
+  },
+  {
+   "id": "elr-mikro",
+   "brand": "Mikro",
+   "series": "Relay chạm đất",
+   "model": "Mikro EFR 96",
+   "name": "Relay bảo vệ chạm đất 96×96",
+   "type": "EARTH_RELAY",
+   "category": "Điều khiển & báo",
+   "size": {
+    "w": 96,
+    "h": 96,
+    "d": 80
+   },
+   "mount": "door",
+   "doorCutout": {
+    "shape": "rect",
+    "w": 92,
+    "h": 92
+   },
+   "plateHoles": [],
+   "clearance": 15,
+   "price": 1450000
+  },
+  {
+   "id": "zct-80",
+   "brand": "Mikro",
+   "series": "ZCT",
+   "model": "ZCT Ø80",
+   "name": "Biến dòng thứ tự không ZCT Ø80",
+   "type": "CT",
+   "category": "Đo lường",
+   "size": {
+    "w": 110,
+    "h": 110,
+    "d": 45
+   },
+   "mount": "plate",
+   "plateHoles": [
+    {
+     "x": 15,
+     "y": 12,
+     "d": 5.5
+    },
+    {
+     "x": 95,
+     "y": 12,
+     "d": 5.5
+    }
+   ],
+   "clearance": 10,
+   "price": 650000
+  }
+ ]
 }

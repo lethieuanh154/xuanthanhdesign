@@ -11,6 +11,7 @@ export const DOOR_GAP = 3; // khe hở cửa với thân tủ
 export const INNER_DOOR_INSET = 40; // cửa trong thụt vào so với thân
 export const SECTION_MARGIN = 10; // lề trong mỗi ngăn
 export const PLATE_MARGIN = 15; // lề an toàn trên tấm đế
+export const COVER_INSET = 30; // cửa trong (tủ 2 lớp) thụt vào so với thân
 
 export interface DoorLeaf {
   id: 'single' | 'left' | 'right' | 'inner' | 'outer';
@@ -47,6 +48,8 @@ export interface EnclosureLayout {
   leaves: DoorLeaf[];
   busbarZone: Rect | null;
   bars: BusbarBar[];
+  /** Cửa trong của tủ 2 lớp (bản lề cạnh dưới). null nếu không có. */
+  cover: Rect | null;
 }
 
 export function plateMarginFor(e: EnclosureConfig): number {
@@ -91,16 +94,20 @@ export function computeLayout(e: EnclosureConfig, busbar?: BusbarConfig): Enclos
 
   const g = DOOR_GAP;
   const leaves: DoorLeaf[] = [];
+  const hinge = e.hinge ?? 'left';
   if (e.doorType === 'single') {
-    leaves.push({ id: 'single', name: 'Cửa', rect: { x: g, y: g, w: W - 2 * g, h: H - 2 * g }, hinge: 'left', carriesCutouts: true, hem: true, hasLock: true });
+    leaves.push({ id: 'single', name: 'Cửa', rect: { x: g, y: g, w: W - 2 * g, h: H - 2 * g }, hinge, carriesCutouts: true, hem: true, hasLock: true });
   } else if (e.doorType === 'double') {
     const lw = (W - 3 * g) / 2;
     leaves.push({ id: 'left', name: 'Cửa trái', rect: { x: g, y: g, w: lw, h: H - 2 * g }, hinge: 'left', carriesCutouts: true, hem: true, hasLock: false });
     leaves.push({ id: 'right', name: 'Cửa phải', rect: { x: 2 * g + lw, y: g, w: lw, h: H - 2 * g }, hinge: 'right', carriesCutouts: true, hem: true, hasLock: true });
+  } else if (e.doorType === 'two_layer') {
+    // lớp ngoài: cửa gắn đồng hồ/đèn/relay; lớp trong: cửa trong (layout.cover)
+    leaves.push({ id: 'outer', name: 'Cửa ngoài', rect: { x: g, y: g, w: W - 2 * g, h: H - 2 * g }, hinge, carriesCutouts: true, hem: true, hasLock: true });
   } else {
     const i = INNER_DOOR_INSET;
-    leaves.push({ id: 'inner', name: 'Cửa trong', rect: { x: i, y: i, w: W - 2 * i, h: H - 2 * i }, hinge: 'left', carriesCutouts: true, hem: false, hasLock: false });
-    leaves.push({ id: 'outer', name: 'Cửa ngoài', rect: { x: g, y: g, w: W - 2 * g, h: H - 2 * g }, hinge: 'left', carriesCutouts: false, hem: true, hasLock: true });
+    leaves.push({ id: 'inner', name: 'Cửa trong', rect: { x: i, y: i, w: W - 2 * i, h: H - 2 * i }, hinge, carriesCutouts: true, hem: false, hasLock: false });
+    leaves.push({ id: 'outer', name: 'Cửa ngoài', rect: { x: g, y: g, w: W - 2 * g, h: H - 2 * g }, hinge, carriesCutouts: false, hem: true, hasLock: true });
   }
 
   let busbarZone: Rect | null = null;
@@ -120,7 +127,9 @@ export function computeLayout(e: EnclosureConfig, busbar?: BusbarConfig): Enclos
     });
   }
 
-  return { W, H, D, base: e.base, body: { x: 0, y: 0, w: W, h: H }, sections, plate, leaves, busbarZone, bars };
+  const c = COVER_INSET;
+  const cover = e.doorType === 'two_layer' ? { x: c, y: c, w: W - 2 * c, h: H - 2 * c } : null;
+  return { W, H, D, base: e.base, body: { x: 0, y: 0, w: W, h: H }, sections, plate, leaves, busbarZone, bars, cover };
 }
 
 /** Kích thước thiết bị sau khi xoay (nhìn từ mặt trước). */
@@ -174,4 +183,9 @@ export function leafAt(layout: EnclosureLayout, x: number, y: number): DoorLeaf 
   return layout.leaves.find(
     (l) => l.carriesCutouts && x >= l.rect.x && x <= l.rect.x + l.rect.w && y >= l.rect.y && y <= l.rect.y + l.rect.h,
   );
+}
+
+/** Toạ độ X (trong lá cửa) của khoá: luôn ở phía đối diện bản lề. */
+export function lockX(leaf: DoorLeaf): number {
+  return leaf.hinge === 'left' ? leaf.rect.w - 35 : 35;
 }

@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, computed, effect, ElementRef, inject, OnDestroy, signal, untracked, viewChild } from '@angular/core';
+import { AfterViewInit, Component, computed, effect, ElementRef, inject, input, OnDestroy, signal, untracked, viewChild } from '@angular/core';
 import Konva from 'konva';
 import { ProjectStore } from '../core/project.store';
 import { ExportService } from '../core/export.service';
@@ -14,6 +14,7 @@ const MARK = '#FFD400';
   selector: 'app-flat-view',
   template: `
     <div class="fv">
+      @if (!compact()) {
       <div class="plist">
         <div class="ph">CHI TIẾT ({{ store.parts().length }})</div>
         @for (p of store.parts(); track p.id) {
@@ -24,9 +25,14 @@ const MARK = '#FFD400';
           </button>
         }
       </div>
+      }
       <div class="canvas">
         <div #el class="stage"></div>
-        @if (part(); as p) {
+        @if (compact()) {
+          @if (part(); as p) {
+            <div class="mini"><b>{{ p.code }}</b> {{ w(p) }} × {{ h(p) }} mm · {{ p.thickness }} mm · {{ p.bendLines.length }} chấn · {{ p.holes.length }} lỗ</div>
+          }
+        } @else if (part(); as p) {
           <div class="info">
             <div class="t">{{ p.name }} <span class="code">{{ p.code }}</span></div>
             <table>
@@ -41,6 +47,7 @@ const MARK = '#FFD400';
             <button class="dl" (click)="ex.downloadPartDxf(p)">⬇ Tải DXF chi tiết này</button>
           </div>
         }
+        @if (!compact()) {
         <div class="legend">
           <span><i [style.background]="cut"></i>CUT — cắt</span>
           <span><i [style.background]="bend"></i>BEND_UP ▲ chấn lên</span>
@@ -48,6 +55,7 @@ const MARK = '#FFD400';
           <span><i [style.background]="mark"></i>MARK — khắc</span>
           <span class="dim">cuộn = zoom · kéo = di chuyển · dbl-click = vừa khung</span>
         </div>
+        }
       </div>
     </div>
   `,
@@ -73,6 +81,8 @@ const MARK = '#FFD400';
     .dim { color: #6b7783; }
     .dl { margin-top: 8px; width: 100%; height: 28px; background: #1E5AA8; color: #fff; border: 0; border-radius: 4px; cursor: pointer; }
     .dl:hover { background: #2a6dc4; }
+    .mini { position: absolute; top: 8px; left: 10px; font-size: 12px; color: #cfd6dd; background: rgba(17,20,25,.85); padding: 4px 8px; border-radius: 4px; font-family: var(--mono); }
+    .mini b { color: #39FF14; }
     .legend { position: absolute; bottom: 8px; left: 10px; right: 10px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 11px; color: #9aa5b1; pointer-events: none; }
     .legend i { display: inline-block; width: 16px; height: 3px; margin-right: 5px; vertical-align: 3px; }
     .legend i.dash { background: repeating-linear-gradient(90deg, #FF00FF 0 4px, transparent 4px 7px); }
@@ -81,6 +91,8 @@ const MARK = '#FFD400';
 export class FlatView implements AfterViewInit, OnDestroy {
   readonly store = inject(ProjectStore);
   readonly ex = inject(ExportService);
+  /** Chế độ gọn (trang Kết quả): ẩn danh sách & thẻ thông tin, chỉ xem. */
+  readonly compact = input(false);
   readonly cut = CUT;
   readonly bend = BEND;
   readonly mark = MARK;
@@ -126,7 +138,7 @@ export class FlatView implements AfterViewInit, OnDestroy {
     if (!cnc) return;
     const W = bboxW(p.bbox),
       H = bboxH(p.bbox);
-    if (refit) cnc.fit(W, H, 80, 300);
+    if (refit) cnc.fit(W, H, this.compact() ? 46 : 80, this.compact() ? 46 : 300);
     this.lastId = p.id;
     const L = cnc.layer;
     L.destroyChildren();

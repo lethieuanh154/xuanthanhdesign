@@ -106,18 +106,23 @@ export class EnclosureForm {
   readonly store = inject(ProjectStore);
   readonly e = computed(() => this.store.project().enclosure);
   readonly materials: { v: Material; l: string }[] = [
-    { v: 'SPCC', l: 'SPCC sơn tĩnh điện' },
+    { v: 'SPCC', l: 'SPCC sơn TĐ' },
+    { v: 'GALV', l: 'Tôn mạ kẽm' },
     { v: 'INOX304', l: 'Inox 304' },
+    { v: 'INOX201', l: 'Inox 201' },
   ];
   readonly doors: { v: DoorType; l: string }[] = [
     { v: 'single', l: '1 cánh' },
     { v: 'double', l: '2 cánh' },
     { v: 'inner_outer', l: 'Cửa trong + ngoài' },
+    { v: 'two_layer', l: '2 lớp (cửa trong khoét ô)' },
   ];
   readonly vents: { v: VentType; l: string }[] = [
     { v: 'none', l: 'Không' },
     { v: 'bottom', l: 'Hông dưới' },
     { v: 'top_bottom', l: 'Hông trên + dưới' },
+    { v: 'fan', l: 'Quạt hút' },
+    { v: 'side_vertical', l: 'Khe đứng' },
   ];
   readonly mounts: { v: Mounting; l: string }[] = [
     { v: 'wall', l: 'Treo' },

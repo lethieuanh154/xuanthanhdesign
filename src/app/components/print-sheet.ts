@@ -2,7 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ProjectStore } from '../core/project.store';
 import { vnd } from '../core/export.service';
-import { bboxH, bboxW, deviceCutout, deviceRect, holeBBox, MATERIAL_LABEL, r2 } from '../geometry';
+import { bboxH, bboxW, deviceCutout, deviceRect, holeBBox, MATERIAL_LABEL, r2, lockX, coverWindows } from '../geometry';
 
 const SCALES = [5, 10, 15, 20, 25, 30, 40, 50];
 
@@ -36,7 +36,7 @@ const SCALES = [5, 10, 15, 20, 25, 30, 40, 50];
   `,
   styles: `
     .sheet { width: 404mm; height: 281mm; page-break-after: always; break-after: page; overflow: hidden; }
-    .page2 { height: auto; font-family: var(--font); font-size: 10pt; }
+    .page2 { page-break-after: auto; break-after: auto; height: auto; font-family: var(--font); font-size: 10pt; }
     h2 { font-size: 13pt; margin: 4mm 0 2mm; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 4mm; }
     th, td { border: 0.3mm solid #333; padding: 1mm 2mm; text-align: left; }
@@ -114,7 +114,7 @@ export class PrintSheet {
     for (const leaf of lay.leaves) {
       R(X1(leaf.rect.x), yB(leaf.rect.y + leaf.rect.h), leaf.rect.w * k, leaf.rect.h * k, leaf.carriesCutouts ? 0.35 : 0.25, 'none', leaf.id === 'inner' ? '1.5 1' : '');
       if (leaf.hasLock) {
-        const lx = leaf.id === 'right' ? leaf.rect.x + 35 : leaf.rect.x + leaf.rect.w - 35;
+        const lx = leaf.rect.x + lockX(leaf);
         out.push(`<circle cx="${X1(lx)}" cy="${yB(leaf.rect.y + leaf.rect.h / 2)}" r="${11.25 * k}" fill="none" stroke="#000" stroke-width="0.25"/>`);
       }
     }
@@ -143,6 +143,10 @@ export class PrintSheet {
     if (e.base) R(X2(0), yB(0), e.W * k, e.base * k, 0.35, '#ddd');
     R(X2(lay.plate.x), yB(lay.plate.y + lay.plate.h), lay.plate.w * k, lay.plate.h * k, 0.25, '#f6f6f6');
     lay.sections.slice(0, -1).forEach((s) => L(X2(0), yB(s.y0), X2(e.W), yB(s.y0), 0.25, '2 1'));
+    if (lay.cover) {
+      R(X2(lay.cover.x), yB(lay.cover.y + lay.cover.h), lay.cover.w * k, lay.cover.h * k, 0.25, 'none', '0.8 0.8');
+      for (const wdw of coverWindows(p, st.cat)) R(X2(wdw.rect.x), yB(wdw.rect.y + wdw.rect.h), wdw.rect.w * k, wdw.rect.h * k, 0.2, 'none', '1.5 0.8');
+    }
     for (const b of lay.bars) R(X2(b.rect.x), yB(b.rect.y + b.rect.h), b.rect.w * k, b.rect.h * k, 0.15, '#e8c39e');
     for (const pd of p.devices.filter((d) => d.mount === 'plate')) {
       const def = st.defOf(pd.deviceId);

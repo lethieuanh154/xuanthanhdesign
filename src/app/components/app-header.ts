@@ -1,12 +1,14 @@
 import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { ProjectStore } from '../core/project.store';
 import { ExportService } from '../core/export.service';
 
 @Component({
   selector: 'app-header',
+  imports: [RouterLink],
   template: `
     <header class="hdr no-print">
-      <div class="logo" title="Công ty Xuân Thành — Đà Nẵng">
+      <a class="logo" routerLink="/" [queryParams]="{ chon: 1 }" title="Về trang chọn giao diện (Wizard View / Detail View)">
         <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
           <rect x="3" y="2" width="24" height="26" rx="2" fill="#1E5AA8" />
           <rect x="6" y="5" width="18" height="20" rx="1" fill="none" stroke="#fff" stroke-width="1.4" />
@@ -14,9 +16,9 @@ import { ExportService } from '../core/export.service';
         </svg>
         <div>
           <b>XUÂN THÀNH</b>
-          <span>Tủ Điện Builder</span>
+          <span>Detail View</span>
         </div>
-      </div>
+      </a>
       <div class="proj">
         <span class="muted">Dự án:</span>
         <input class="name" [value]="p().name" (change)="store.setMeta({ name: $any($event.target).value })" title="Tên dự án" />
@@ -28,14 +30,16 @@ import { ExportService } from '../core/export.service';
         @if (store.lastSavedAt(); as t) {
           <span class="muted small">Đã lưu {{ t }}</span>
         }
-        <button class="btn" (click)="store.newProject()">＋ Dự án mới</button>
+        <a class="btn" [routerLink]="['/cau-hinh', p().id]" title="Mở đơn này ở giao diện từng bước">‹ Wizard View</a>
+        <a class="btn" [routerLink]="['/don-hang', p().id]">Kết quả</a>
+        <button class="btn" (click)="newProject()">＋ Dự án mới</button>
         <div class="dropdown">
           <button class="btn" (click)="toggle('open', $event)">Mở dự án ▾</button>
           @if (menu() === 'open') {
             <div class="menu" (click)="$event.stopPropagation()">
               @for (s of store.savedList(); track s.id) {
                 <div class="saved" [class.cur]="s.id === p().id">
-                  <button class="mi" (click)="store.openProject(s.id); menu.set(null)">
+                  <button class="mi" (click)="open(s.id)">
                     <span class="chip">{{ s.cabinetType }}</span>
                     <span class="grow">
                       <b>{{ s.name }}</b><br />
@@ -73,7 +77,7 @@ import { ExportService } from '../core/export.service';
   `,
   styles: `
     .hdr { height: 52px; display: flex; align-items: center; gap: 16px; padding: 0 14px; background: var(--steel-900); color: #fff; }
-    .logo { display: flex; align-items: center; gap: 8px; line-height: 1.05; }
+    .logo { display: flex; align-items: center; gap: 8px; line-height: 1.05; color: inherit; text-decoration: none; }
     .logo b { letter-spacing: .08em; font-size: 14px; display: block; }
     .logo span { font-size: 11px; color: var(--steel-300); }
     .proj { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -85,7 +89,7 @@ import { ExportService } from '../core/export.service';
     .proj .muted { color: var(--steel-300); }
     .actions { display: flex; align-items: center; gap: 6px; }
     .actions > .muted { color: var(--steel-300); margin-right: 4px; }
-    .actions .btn:not(.primary) { background: transparent; color: #fff; border-color: var(--steel-500); }
+    .actions .btn:not(.primary) { background: transparent; color: #fff; border-color: var(--steel-500); text-decoration: none; }
     .actions .btn:not(.primary):hover { background: rgba(255,255,255,.08); }
     .menu { color: var(--steel-900); min-width: 300px; }
     .saved { display: flex; align-items: center; border-radius: 4px; }
@@ -104,6 +108,18 @@ export class AppHeader {
     e.stopPropagation();
     if (m === 'open') void this.store.refreshList();
     this.menu.update((v) => (v === m ? null : m));
+  }
+
+  private readonly router = inject(Router);
+
+  async newProject(): Promise<void> {
+    await this.store.newProject();
+    void this.router.navigate(['/nang-cao', this.store.project().id]);
+  }
+
+  open(id: string): void {
+    this.menu.set(null);
+    void this.router.navigate(['/nang-cao', id]);
   }
 
   @HostListener('document:click')

@@ -6,28 +6,135 @@
       "name": "Tủ DB treo tường 1 cánh",
       "description": "Tủ phân phối nhánh, treo tường, cửa 1 cánh.",
       "busbarA": 100,
-      "enclosure": { "H": 600, "W": 400, "D": 200, "sections": 1, "sectionHeights": [600], "thickness": 1.2, "material": "SPCC", "doorType": "single", "vent": "none", "base": 0, "mounting": "wall" }
+      "enclosure": {
+        "H": 600,
+        "W": 400,
+        "D": 200,
+        "sections": 1,
+        "sectionHeights": [
+          600
+        ],
+        "thickness": 1.2,
+        "material": "SPCC",
+        "doorType": "single",
+        "vent": "none",
+        "base": 0,
+        "mounting": "wall",
+        "hinge": "left",
+        "lock": "handle",
+        "ral": "7035",
+        "ipDust": 4,
+        "ipWater": 3
+      }
     },
     {
       "id": "MSB",
       "name": "Tủ MSB đặt sàn",
       "description": "Tủ phân phối tổng, đặt sàn, cửa trong + cửa ngoài, khung đế 100.",
       "busbarA": 1000,
-      "enclosure": { "H": 2000, "W": 800, "D": 600, "sections": 3, "sectionHeights": [600, 700, 700], "thickness": 2.0, "material": "SPCC", "doorType": "inner_outer", "vent": "top_bottom", "base": 100, "mounting": "floor" }
+      "enclosure": {
+        "H": 2000,
+        "W": 800,
+        "D": 600,
+        "sections": 3,
+        "sectionHeights": [
+          600,
+          700,
+          700
+        ],
+        "thickness": 2.0,
+        "material": "SPCC",
+        "doorType": "inner_outer",
+        "vent": "top_bottom",
+        "base": 100,
+        "mounting": "floor",
+        "hinge": "left",
+        "lock": "handle",
+        "ral": "7035",
+        "ipDust": 4,
+        "ipWater": 2
+      }
     },
     {
       "id": "ATS",
       "name": "Tủ ATS treo tường",
       "description": "Tủ chuyển nguồn tự động, treo tường, 1 cánh.",
       "busbarA": 100,
-      "enclosure": { "H": 800, "W": 600, "D": 250, "sections": 1, "sectionHeights": [800], "thickness": 1.2, "material": "SPCC", "doorType": "single", "vent": "bottom", "base": 0, "mounting": "wall" }
+      "enclosure": {
+        "H": 800,
+        "W": 600,
+        "D": 250,
+        "sections": 1,
+        "sectionHeights": [
+          800
+        ],
+        "thickness": 1.2,
+        "material": "SPCC",
+        "doorType": "single",
+        "vent": "bottom",
+        "base": 0,
+        "mounting": "wall",
+        "hinge": "left",
+        "lock": "handle",
+        "ral": "7035",
+        "ipDust": 5,
+        "ipWater": 4
+      }
     },
     {
       "id": "CAP",
       "name": "Tủ tụ bù đặt sàn",
       "description": "Tủ bù công suất phản kháng, đặt sàn, thông gió trên + dưới.",
       "busbarA": 400,
-      "enclosure": { "H": 1800, "W": 700, "D": 500, "sections": 2, "sectionHeights": [500, 1300], "thickness": 1.5, "material": "SPCC", "doorType": "single", "vent": "top_bottom", "base": 100, "mounting": "floor" }
+      "enclosure": {
+        "H": 1800,
+        "W": 700,
+        "D": 500,
+        "sections": 2,
+        "sectionHeights": [
+          500,
+          1300
+        ],
+        "thickness": 1.5,
+        "material": "SPCC",
+        "doorType": "single",
+        "vent": "top_bottom",
+        "base": 100,
+        "mounting": "floor",
+        "hinge": "left",
+        "lock": "handle",
+        "ral": "7035",
+        "ipDust": 4,
+        "ipWater": 2
+      }
+    },
+    {
+      "id": "2L",
+      "name": "Tủ điện 2 lớp treo tường",
+      "description": "Cửa ngoài gắn relay chạm đất, đồng hồ, đèn báo; cửa trong che thiết bị, khoét ô lộ cần gạt aptomat, bản lề dưới. Tai treo ngoài, tấm che cáp đáy, khe gió đứng 2 hông.",
+      "busbarA": 100,
+      "enclosure": {
+        "H": 800,
+        "W": 500,
+        "D": 250,
+        "sections": 1,
+        "sectionHeights": [
+          800
+        ],
+        "thickness": 1.5,
+        "material": "SPCC",
+        "doorType": "two_layer",
+        "vent": "side_vertical",
+        "base": 0,
+        "mounting": "wall",
+        "hinge": "left",
+        "lock": "handle",
+        "ral": "7035",
+        "ipDust": 4,
+        "ipWater": 3,
+        "brackets": true,
+        "cableEntry": "gland"
+      }
     }
   ]
 }

@@ -1,12 +1,89 @@
 {
   "_note": "Phụ kiện vỏ tủ — giá mẫu. id dùng cho công thức gợi ý số lượng trong geometry/bom.ts (suggestAccessoryQty).",
   "accessories": [
-    { "id": "tay-nam", "name": "Tay nắm khoá tủ điện", "unit": "cái", "price": 120000, "spec": "MS480, kẽm đúc" },
-    { "id": "ban-le", "name": "Bản lề âm", "unit": "cái", "price": 35000, "spec": "CL201, mở 120°" },
-    { "id": "khoa", "name": "Khoá / chốt cửa", "unit": "cái", "price": 45000, "spec": "MS705" },
-    { "id": "ron", "name": "Ron cao su cửa", "unit": "m", "price": 25000, "spec": "EPDM 10×6" },
-    { "id": "oc-vit", "name": "Ốc vít", "unit": "bộ", "price": 150000, "spec": "Bộ M4–M10 inox" },
-    { "id": "ray-din", "name": "Thanh ray DIN", "unit": "m", "price": 40000, "spec": "35 mm, thép mạ" },
-    { "id": "mang-dien", "name": "Máng điện", "unit": "m", "price": 55000, "spec": "45×45 có nắp" }
+    {
+      "id": "tay-nam",
+      "name": "Khoá tay nắm",
+      "unit": "cái",
+      "price": 120000,
+      "spec": "MS480, kẽm đúc"
+    },
+    {
+      "id": "khoa-vuong",
+      "name": "Khoá vuông (quay 1/4)",
+      "unit": "cái",
+      "price": 55000,
+      "spec": "MS705, chìa tam giác/vuông"
+    },
+    {
+      "id": "khoa-chia",
+      "name": "Khoá có chìa",
+      "unit": "cái",
+      "price": 85000,
+      "spec": "MS403, 2 chìa"
+    },
+    {
+      "id": "khoa",
+      "name": "Chốt cánh phụ",
+      "unit": "cái",
+      "price": 45000,
+      "spec": "Chốt trên/dưới cho cửa 2 cánh"
+    },
+    {
+      "id": "ban-le",
+      "name": "Bản lề âm",
+      "unit": "cái",
+      "price": 35000,
+      "spec": "CL201, mở 120°"
+    },
+    {
+      "id": "ron",
+      "name": "Ron cao su cửa",
+      "unit": "m",
+      "price": 25000,
+      "spec": "EPDM 10×6 (IP ≥ 54)"
+    },
+    {
+      "id": "oc-vit",
+      "name": "Ốc vít",
+      "unit": "bộ",
+      "price": 150000,
+      "spec": "Bộ M4–M10 inox"
+    },
+    {
+      "id": "ray-din",
+      "name": "Thanh ray DIN",
+      "unit": "m",
+      "price": 40000,
+      "spec": "35 mm, thép mạ"
+    },
+    {
+      "id": "mang-dien",
+      "name": "Máng điện",
+      "unit": "m",
+      "price": 55000,
+      "spec": "45×45 có nắp"
+    },
+    {
+      "id": "den-tu",
+      "name": "Đèn tủ LED",
+      "unit": "bộ",
+      "price": 180000,
+      "spec": "LED 5W + công tắc hành trình cửa"
+    },
+    {
+      "id": "quat",
+      "name": "Quạt hút + lọc gió",
+      "unit": "bộ",
+      "price": 650000,
+      "spec": "120×120, 220VAC, kèm tấm lọc"
+    },
+    {
+      "id": "o-cam",
+      "name": "Ổ cắm gắn ray DIN",
+      "unit": "cái",
+      "price": 95000,
+      "spec": "16A 2 chấu"
+    }
   ]
 }

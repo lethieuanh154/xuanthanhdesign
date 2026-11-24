@@ -1,7 +1,16 @@
 {
-  "note": "Đơn giá mẫu (VNĐ, chưa VAT). Thay theo giá thị trường / báo giá nhà cung cấp.",
-  "steelPerKg": { "SPCC": 28000, "INOX304": 85000 },
+  "note": "Đơn giá mẫu (VNĐ, chưa VAT). SPCC = thép sơn tĩnh điện, GALV = tôn mạ kẽm. vat dùng cho báo giá khách.",
+  "steelPerKg": {
+    "SPCC": 28000,
+    "GALV": 30000,
+    "INOX304": 85000,
+    "INOX201": 62000
+  },
   "copperPerKg": 320000,
   "fabricationPerM2": 180000,
-  "density": { "steel": 7.85, "copper": 8.9 }
+  "density": {
+    "steel": 7.85,
+    "copper": 8.9
+  },
+  "vat": 0.1
 }

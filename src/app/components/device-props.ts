@@ -45,7 +45,10 @@ import { vnd } from '../core/export.service';
           <button [class.on]="x.pd.mount === 'door'" (click)="store.patchDevice(x.pd.uid, { mount: 'door', doorCutout: true })">Lỗ khoét cửa</button>
         </div>
       </div>
-      @if (x.pd.mount === 'plate' && x.def.doorCutout) {
+      @if (x.pd.mount === 'plate' && store.project().enclosure.doorType === 'two_layer') {
+        <p class="muted small">Tủ 2 lớp: thiết bị lộ ra qua ô khoét của cửa trong (tự sinh).</p>
+      }
+      @if (x.pd.mount === 'plate' && x.def.doorCutout && store.project().enclosure.doorType !== 'two_layer') {
         <div class="opt"><label class="check"><input type="checkbox" [checked]="x.pd.doorCutout" (change)="store.patchDevice(x.pd.uid, { doorCutout: $any($event.target).checked })" /> Khoét cửa để lộ mặt thiết bị ({{ cutText(x.def) }})</label></div>
       }
       <div class="row opt">

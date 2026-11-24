@@ -6,6 +6,7 @@ export * from './bend';
 export * from './panel';
 export * from './layout';
 export * from './templates';
+export * from './cover';
 export * from './rules';
 export * from './nesting';
 export * from './dxf';

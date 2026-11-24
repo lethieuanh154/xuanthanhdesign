@@ -44,7 +44,8 @@ export function createProject(cat: Catalog, tpl: CabinetTemplate, base?: Partial
     devices: [],
     busbar,
     accessories: [],
-    sheetSize: '1250x2500',
+    // khổ tôn máy laser của xưởng (theo ảnh màn hình CAM: 1500×3000)
+    sheetSize: '1500x3000',
   };
   p.accessories = suggestAccessories(p, cat).map((a) => ({ ...a, auto: true }));
   return p;

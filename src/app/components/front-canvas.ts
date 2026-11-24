@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, effect, inject, OnDestroy, signal
 import { CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import Konva from 'konva';
 import { ProjectStore, snap } from '../core/project.store';
-import { deviceCutout, deviceRect, generateParts, holeBBox, issuesByTarget, Project, Rect, runRules, sectionAt } from '../geometry';
+import { deviceCutout, deviceRect, generateParts, holeBBox, issuesByTarget, Project, Rect, runRules, sectionAt, lockX, coverWindows } from '../geometry';
 
 type IssueMap = Map<string, { level: 'warn' | 'error'; messages: string[] }>;
 
@@ -263,6 +263,15 @@ export class FrontCanvas implements AfterViewInit, OnDestroy {
     }
 
     // cửa (nét đứt xanh)
+    // cửa trong (tủ 2 lớp) + ô khoét lộ aptomat
+    if (lay.cover) {
+      const cv = lay.cover;
+      w.add(new Konva.Rect({ x: cv.x, y: Y(cv.y + cv.h), width: cv.w, height: cv.h, stroke: '#8a6d00', strokeWidth: 1.4, dash: [this.px(3), this.px(4)], strokeScaleEnabled: false, listening: false }));
+      w.add(new Konva.Text({ x: cv.x + this.px(4), y: Y(cv.y) - this.px(14), text: 'Cửa trong', fontSize: this.px(10), fill: '#8a6d00', listening: false }));
+      for (const win of coverWindows(p, st.cat)) {
+        w.add(new Konva.Rect({ x: win.rect.x, y: Y(win.rect.y + win.rect.h), width: win.rect.w, height: win.rect.h, stroke: '#c79100', strokeWidth: 1.5, dash: [this.px(5), this.px(3)], strokeScaleEnabled: false, listening: false }));
+      }
+    }
     for (const leaf of lay.leaves) {
       const r = leaf.rect;
       w.add(new Konva.Rect({ x: r.x, y: Y(r.y + r.h), width: r.w, height: r.h, stroke: C.accent, strokeWidth: leaf.carriesCutouts ? 1.6 : 1, dash: [this.px(8), this.px(5)], strokeScaleEnabled: false, opacity: leaf.carriesCutouts ? 0.9 : 0.45, listening: false }));
@@ -273,7 +282,7 @@ export class FrontCanvas implements AfterViewInit, OnDestroy {
         w.add(new Konva.Rect({ x: hx, y: Y(cy + 25), width: 6, height: 50, fill: C.accent, opacity: 0.5, listening: false }));
       }
       if (leaf.hasLock) {
-        const lx = leaf.id === 'right' ? r.x + 35 : r.x + r.w - 35;
+        const lx = r.x + lockX(leaf);
         w.add(new Konva.Circle({ x: lx, y: Y(r.y + r.h / 2), radius: 11.25, stroke: C.accent, strokeWidth: 1.5, strokeScaleEnabled: false, listening: false }));
       }
       w.add(new Konva.Text({ x: r.x + this.px(4), y: Y(r.y) - this.px(15), text: leaf.name, fontSize: this.px(10.5), fill: C.accent, listening: false }));

@@ -1,0 +1,40 @@
+{
+  "_note": "Khách hàng mẫu cho ô gợi ý ở bước 8. Khách đã lưu trong các đơn cũ cũng được gợi ý.",
+  "customers": [
+    {
+      "name": "Cty TNHH Xây dựng Hoà Phát Miền Trung",
+      "contact": "Anh Tuấn",
+      "phone": "0905 123 456",
+      "address": "12 Nguyễn Văn Linh",
+      "province": "Đà Nẵng"
+    },
+    {
+      "name": "Cty CP Cơ điện Sông Hàn",
+      "contact": "Chị Lan",
+      "phone": "0935 222 888",
+      "address": "88 Bạch Đằng",
+      "province": "Đà Nẵng"
+    },
+    {
+      "name": "Nhà máy May Hội An",
+      "contact": "Anh Minh",
+      "phone": "0914 555 777",
+      "address": "KCN Điện Nam – Điện Ngọc",
+      "province": "Quảng Nam"
+    },
+    {
+      "name": "Khách sạn Biển Xanh",
+      "contact": "Anh Hùng",
+      "phone": "0983 333 111",
+      "address": "21 Võ Nguyên Giáp",
+      "province": "Đà Nẵng"
+    },
+    {
+      "name": "Cty TNHH Thép Dung Quất",
+      "contact": "Anh Phong",
+      "phone": "0977 444 666",
+      "address": "KKT Dung Quất",
+      "province": "Quảng Ngãi"
+    }
+  ]
+}

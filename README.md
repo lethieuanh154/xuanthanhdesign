@@ -1,10 +1,93 @@
-# Tủ Điện Builder — Xuân Thành (demo UX/UI)
+# Tủ Điện Builder — Xuân Thành
 
-Web app kiểu "trang tự build PC" cho tủ điện: chọn loại tủ → chỉnh vỏ → kéo thả thiết bị → thanh cái & phụ kiện → xuất
-**DXF trải phẳng cho máy laser CNC**, **BOM (CSV/XLSX)** và **bản vẽ tổng thể PDF**.
+Web app cấu hình tủ điện kiểu **wizard từng bước** (giống trình cấu hình DriveWorks Live): khung 3D lớn bên trái,
+panel hẹp bên phải mỗi lần chỉ hiện **một bước**, giá cập nhật ngay; bước cuối sinh **DXF trải phẳng cho máy laser
+CNC**, **BOM (XLSX)**, **bản vẽ tổng thể PDF** và **báo giá cho khách**.
 
-> Đây là bản demo để hình dung UX/UI. Hình học đủ đúng để DXF mở được trong CAD/CAM, **chưa phải số liệu sản xuất**.
-> Kích thước thiết bị, bảng BD, bảng thanh cái và đơn giá đều là **số mẫu**.
+Giao diện nhiều panel cũ vẫn còn, đổi tên thành **Chế độ nâng cao** (cho bộ phận Thiết kế).
+
+> Bản demo. Kích thước thiết bị, bảng BD, bảng thanh cái và đơn giá đều là **số mẫu**.
+
+## Các trang (route)
+
+| Route | Trang | Dành cho |
+|---|---|---|
+| `/` | **Trang chọn giao diện**: Wizard View / Detail View + danh sách đơn gần đây | Mọi người |
+| `/cau-hinh/moi` | Tạo cấu hình mới → chuyển sang `/cau-hinh/{id}` | Người bán hàng |
+| `/cau-hinh/:id` | **Wizard View** — 8 bước, có nút **Detail View ↗** mở cùng đơn ở giao diện đầy đủ | Người bán hàng |
+| `/don-hang/:id` | Trang Kết quả: bản vẽ PDF, ZIP DXF / tải lẻ, **DXF gộp**, BOM **XLSX + CSV**, báo giá; **sắp tôn** (số tấm, % sử dụng); **đơn đã lưu**; xem trước trải phẳng | Người bán hàng, xưởng |
+| `/nang-cao/:id` | **Detail View** — giao diện đầy đủ của bản v1 (thư viện, canvas, 4 tab, kiểm tra, bảng chi tiết), có nút **‹ Wizard View** | Thiết kế |
+
+**Trang chọn giao diện:** lần đầu mở app luôn hiện trang này. Nếu tick "Ghi nhớ lựa chọn" (mặc định bật), lần sau mở
+`/` sẽ vào thẳng giao diện đã chọn với đơn gần nhất. Muốn chọn lại: bấm logo **XUÂN THÀNH** ở cả hai giao diện,
+hoặc mở `/?chon=1`.
+
+Cả hai giao diện dùng chung `ProjectStore`, nên dữ liệu **đồng bộ hai chiều**: sửa ở Detail View rồi quay về wizard
+thì thấy ngay, và ngược lại. Mọi thay đổi tự lưu nháp vào `localStorage` sau ~0,4 giây.
+
+### Wizard View có gì, Detail View có thêm gì
+
+Wizard cố ý gọn cho người bán hàng. Các tùy chỉnh kỹ thuật sau **chỉ có ở Detail View**: xoay thiết bị 0/90°, "Căn đều",
+phím tắt (Delete, Ctrl+D, R, mũi tên), đổi gắn tấm đế ↔ cửa, đánh dấu aptomat tổng, nhãn thiết bị, bật/tắt khoét cửa
+cho thiết bị tấm đế, kích thước đồng / uốn Z / hệ số Ks của thanh cái, sửa số lượng phụ kiện, chiều cao ngăn cho tủ treo,
+khổ tôn, thước & lưới, sơ đồ sắp tôn, panel KIỂM TRA / TÓM TẮT đầy đủ, bảng danh sách chi tiết.
+Kịch bản nghiệm thu v1 (mục bên dưới) đã chạy lại trên Detail View sau bản v2 — đạt.
+
+### Luồng wizard
+
+1. **Loại tủ** — 4 thẻ có ảnh render 3D (DB, MSB, ATS, tụ bù) → điền sẵn thông số mặc định.
+2. **Kích thước** — Cao/Rộng/Sâu (▲▼ bước 50 mm, phạm vi cho phép), chip kích thước phổ biến, số ngăn + khung đế (tủ đặt sàn). Báo ngay nếu chi tiết vượt khổ tôn.
+3. **Vật liệu & sơn** — thép sơn tĩnh điện / tôn mạ kẽm / inox 304 / inox 201, độ dày, màu RAL. 3D đổi chất liệu ngay.
+4. **Cấp bảo vệ & thông gió** — mã IP tổng hợp; IP ≥ 54 tự thêm ron cửa; không / hông dưới / trên + dưới / quạt hút.
+5. **Cửa & khóa** — 1 cánh / 2 cánh / trong + ngoài, chiều mở trái/phải, khóa tay nắm / vuông / có chìa. Khung 3D tự mở cửa 90°.
+6. **Thiết bị** — bảng nhóm thiết bị (Thêm · Sửa · Nhân bản · Xóa), form 3 ô chọn nối tiếp Nhóm → Hãng/dòng → Model,
+   "Chèn bộ mẫu" theo loại tủ. App **tự xếp chỗ** hợp lệ đầu tiên (trên → dưới, trái → phải, đủ khoảng hở).
+   Tick "Hiện mũi tên di chuyển" để dịch thiết bị đang chọn 5 mm/lần (trên 3D hoặc 2D); kéo thả trong 2D vẫn được.
+7. **Thanh cái & phụ kiện** — gợi ý dòng thanh cái theo aptomat tổng/tổng tải, số pha, vị trí; phụ kiện dạng checkbox có giá.
+8. **Thông tin đơn hàng** — mã đơn tự sinh `XT-yymm-0001`, khách hàng (gợi ý khi gõ, tự điền liên hệ), địa chỉ, ghi chú,
+   ảnh render tủ cửa mở. Nút xanh **Hoàn tất đơn** (bị khóa nếu còn lỗi) → trang Kết quả.
+
+Cảnh báo chỉ hiện **trong đúng bước liên quan**; bước còn lỗi thì chấm tiến độ đỏ. Bảng gán luật → bước nằm ở
+`RULE_STEP` trong `src/app/wizard/wizard.service.ts`.
+
+Trên điện thoại/tablet dọc (≤ 820 px): khung 3D ở trên (45vh), panel thành bottom sheet, nút ‹ và giá luôn ở dưới cùng.
+
+### Tủ 2 lớp (cửa ngoài + cửa trong khoét ô)
+
+Loại tủ mẫu **"Tủ điện 2 lớp treo tường"** (800×500×250, tôn 1.5) và kiểu cửa `two_layer`, làm theo tủ thực tế của xưởng.
+Giống kiểu "cửa trong + ngoài", nhưng **cửa trong không gắn thiết bị mà khoét ô lộ cần gạt aptomat**:
+
+- **Cửa ngoài** gắn relay chạm đất Mikro 96×96, đồng hồ Volt + công tắc chuyển mạch, đèn báo, khóa tay nắm;
+  mặt sau có **2 gân tăng cứng** (chi tiết `GAN-CUA`, thép U chấn 12-20-12). Cửa ngoài **không** khoét cho thiết bị tấm đế.
+- **Cửa trong** (`CUA-TRONG`, `geometry/cover.ts`): gấp mép 20, **bản lề cùng phía cửa ngoài**, khoá ¼ vòng phía đối diện.
+  Ô khoét **tự sinh** theo thiết bị trên tấm đế: aptomat dùng kích thước lỗ khoét trong `devices.json`, thiết bị ray DIN
+  lộ phần mặt cao 48 mm; các ô sát nhau (< 8 mm) gộp thành 1 ô (cả hàng MCB/cầu chì/relay). Biến dòng, ZCT, tụ không cần ô.
+  Luật `cover-window`: ô khoét phải cách mép cửa trong ≥ 20 mm.
+- **4 tai treo ngoài** (`TAI-TREO`, thép 2 mm chấn L) thay cho lỗ treo trên hậu — tuỳ chọn `brackets` ở bước 2.
+- **Tấm che lỗ cáp đáy** (`TAM-CHE-DAY`) bắt 4 bulông vào ô chữ nhật ở đáy — tuỳ chọn `cableEntry: 'gland'` ở bước 2.
+- **Khe gió đứng 2 hông** (3 khe oblong 10×100) — `vent: 'side_vertical'` ở bước 4.
+- Thiết bị mới: relay chạm đất Mikro 96×96, ZCT Ø80, cầu chì 3 cực, MCB 2P 6A, MCCB 4P 100A Schneider CVS.
+  "Chèn bộ mẫu" ở bước 6 nạp đúng bộ thiết bị như tủ trong ảnh.
+- 3D: góc mở 90° → cửa trong hé 30°; 150° → cửa trong mở 90°.
+
+### Thêm một bước mới vào wizard
+
+1. Tạo `src/app/wizard/steps/step-xxx.component.ts` (standalone, inject `ProjectStore` để đọc/ghi dự án,
+   `WizardService.issuesOf(n)` để hiện cảnh báo của bước).
+2. Thêm 1 dòng vào `WIZARD_STEPS` trong `wizard.service.ts` (số bước, key, tiêu đề) và đánh lại số các bước sau.
+3. Thêm `@case (n) { <app-step-xxx /> }` trong `src/app/pages/wizard-page.html` và import component trong `wizard-page.ts`.
+4. Nếu bước có luật kiểm tra riêng: thêm `ruleId: n` vào `RULE_STEP`.
+5. Nếu bước cần trường dữ liệu mới: thêm (tuỳ chọn, có `?`) vào `Project`/`EnclosureConfig` trong `geometry/model.ts`
+   để dự án cũ vẫn mở được.
+
+### Trang Kết quả
+
+- **Cấu hình của bạn**: ảnh render (chụp lúc hoàn tất), mã đơn, ngày, tổng giá, mô tả tự sinh (`core/describe.ts`).
+- **Tiến độ tạo file**: giả lập vài giây ở lần mở đầu sau khi hoàn tất.
+- **File & tài liệu**: bản vẽ tổng thể (A3 ngang, khung tên), ZIP DXF (hoặc tải lẻ từng file), BOM `.xlsx`,
+  báo giá cho khách (A4: logo, hạng mục, VAT, tổng bằng chữ, điều khoản). PDF dùng hộp thoại in của trình duyệt →
+  **Lưu thành PDF** (khổ giấy tự đặt theo loại tài liệu).
+- **Xem trước trải phẳng**: khung CNC nền đen, chọn chi tiết, chỉ xem.
 
 ## Chạy
 
@@ -12,7 +95,7 @@ Yêu cầu: Node 22.22+ / 24.15+ / 26+ (đã thử với Node 26.3), npm.
 
 ```bash
 npm install
-npm start            # = ng serve → http://localhost:4200
+npm start            # = ng serve → http://localhost:4200 (mở /cau-hinh/moi)
 npm run build        # bản production → dist/tu-dien-builder/browser
 npm test             # unit test module hình học (Vitest)
 ```
@@ -29,7 +112,10 @@ Không cần backend. Dự án tự lưu vào `localStorage` (F5 vẫn còn); n�
 |---|---|
 | Khung app | Angular 22 (standalone components, signals, zoneless, SCSS) |
 | Canvas mặt trước, trải phẳng, sắp tôn | Konva.js |
-| Xem 3D | Three.js + OrbitControls (tải lazy bằng `@defer`) |
+| Xem 3D | Three.js: tường bê tông procedural, sàn, bóng đổ mềm, vật liệu PBR (`src/app/three/`, tải lazy) |
+| Router | Angular Router, `withComponentInputBinding` (`:id` → `input()`) |
+| ZIP DXF | fflate (tải lazy) |
+| Font | Inter (`@fontsource/inter`, đóng gói kèm app, có tiếng Việt) |
 | Kéo từ thư viện vào canvas | Angular CDK drag-drop |
 | DXF | Writer DXF R12 (AC1009) tự viết — `src/app/geometry/dxf.ts` |
 | BOM | CSV (UTF-8 BOM, mở được bằng Excel) + XLSX (SheetJS, tải lazy) |
@@ -45,8 +131,9 @@ src/
 │  ├─ templates.json            4 loại tủ mẫu (DB, MSB, ATS, tụ bù)
 │  ├─ bend-table.json           bảng BD (bend deduction) theo độ dày
 │  ├─ busbar.json               bảng chọn thanh cái đồng theo dòng định mức
-│  ├─ accessories.json          phụ kiện vỏ tủ
-│  └─ pricing.json              đơn giá tôn, đồng, gia công, tỉ trọng
+│  ├─ accessories.json          phụ kiện vỏ tủ (khoá, bản lề, ron, quạt, đèn tủ…)
+│  ├─ customers.json            khách hàng mẫu cho ô gợi ý ở bước 8
+│  └─ pricing.json              đơn giá tôn (SPCC/mạ kẽm/inox), đồng, gia công, tỉ trọng, VAT
 └─ app/
    ├─ geometry/                 ← TypeScript THUẦN, không phụ thuộc Angular (sẽ port sang Python)
    │  ├─ types.ts               Pt, Polyline (có bulge), Circle, BendLine, Part…
@@ -62,6 +149,18 @@ src/
    │  ├─ bom.ts                 BOM, khối lượng, gợi ý số lượng phụ kiện
    │  ├─ project-factory.ts     tạo dự án từ template
    │  └─ geometry.spec.ts       unit test (20 test)
+   ├─ pages/                    wizard-page (/cau-hinh), result-page (/don-hang), advanced-page (/nang-cao)
+   ├─ wizard/
+   │  ├─ wizard.service.ts      trạng thái wizard (signals), 8 bước, gán luật → bước
+   │  ├─ wizard-data.ts         nhóm thiết bị, bộ mẫu, kích thước phổ biến, IP, phụ kiện tuỳ chọn
+   │  ├─ front-2d.ts            mặt trước 2D (SVG) + mũi tên dịch + kéo thả
+   │  ├─ thumb.service.ts       ảnh render offscreen (thẻ loại tủ, trang Kết quả)
+   │  ├─ price-counter.ts       giá có hiệu ứng đếm số
+   │  └─ steps/step-*.component.ts   8 bước
+   ├─ three/
+   │  ├─ cabinet-scene.ts       dựng tủ 3D từ Project (vỏ, cửa có bản lề, thiết bị, biển cảnh báo)
+   │  ├─ stage.ts               renderer, tường/sàn, bóng đổ, môi trường PBR, góc nhìn, chụp ảnh
+   │  └─ ral.ts                 bảng màu RAL
    ├─ core/
    │  ├─ catalog.service.ts     nạp JSON
    │  ├─ project-repository.ts  interface ProjectRepository + bản localStorage
@@ -123,7 +222,12 @@ Thêm 1 object vào `src/assets/data/devices.json`:
 }
 ```
 
-## Thêm / sửa loại tủ
+## Thêm / sửa loại tủ, bộ mẫu thiết bị
+
+Bộ mẫu cho nút "Chèn bộ mẫu" ở bước 6: `DEVICE_PRESETS` trong `src/app/wizard/wizard-data.ts`.
+Nhóm ở ô chọn thứ nhất: `DEVICE_GROUPS` (theo `type` của thiết bị).
+
+### Loại tủ
 
 Sửa `src/assets/data/templates.json` (`id` là một trong `DB | MSB | ATS | CAP`). Muốn thêm **loại** tủ mới: thêm id vào
 `CabinetType` trong `geometry/model.ts` rồi thêm object vào JSON.
@@ -158,7 +262,7 @@ Mỗi luật trả `{ level: 'ok' | 'warn' | 'error', message, targetIds, step }
 6. Chi tiết trải phẳng phải lọt khổ tôn đang chọn (1250×2500 / 1500×3000).
 7. Phụ: thiết bị quá sâu so với tủ (error), đè lên vùng thanh cái (warn).
 
-## Kịch bản demo (tiêu chí nghiệm thu)
+## Kịch bản demo bản v1 (chế độ nâng cao)
 
 1. Chọn **Tủ ATS treo tường** → 800×600×250, bấm **1.5 mm**.
 2. Bước ③: kéo **MCCB 4P 100A** vào canvas (hoặc **+ Thêm**) ×2; thêm đồng hồ đa năng 96×96, 3 đèn báo Ø22, công tắc chuyển mạch (tự lên cửa).
@@ -170,6 +274,19 @@ Mỗi luật trả `{ level: 'ok' | 'warn' | 'error', message, targetIds, step }
 8. F5 → dự án còn nguyên.
 
 Đã chạy tự động toàn bộ kịch bản trên bằng Chrome headless — đạt, không có lỗi console.
+
+## Kịch bản demo bản v2 (wizard)
+
+1. Mở `/cau-hinh/moi`: chỉ thấy khung 3D + panel bước 1.
+2. Đi hết 8 bước bằng "Tiếp tục"; bấm chấm tiến độ để quay lại bước đã qua.
+3. Đổi kích thước / vật liệu / góc mở cửa: 3D và giá cập nhật ngay (đo trên GPU thật: tính toán 1–2 ms, vẽ lại 3D 23–33 ms).
+4. Bước 6: thêm 2 MCCB 4P 100A + 1 đồng hồ đa năng bằng 3 ô chọn → tự xếp chỗ hợp lệ; bật mũi tên để dịch;
+   đặt trùng nhau → cảnh báo đỏ dưới bảng, chấm bước 6 đỏ, "Hoàn tất" bị khóa.
+5. "Hoàn tất đơn" → trang Kết quả, thanh tiến độ chạy rồi tải được PDF tổng thể, ZIP DXF, BOM xlsx, báo giá PDF.
+6. Điện thoại 375 px: cấu hình đủ 8 bước bằng bottom sheet.
+7. "Chế độ nâng cao" mở đúng dự án đó trong giao diện cũ; sửa ở đó rồi quay lại wizard thấy thay đổi.
+
+Đã chạy tự động (Playwright, desktop 1440 px + mobile 375 px) — đạt; 10 file DXF trong ZIP qua `ezdxf` audit 0 lỗi.
 
 ## Hướng port sang Python / Cloud Run / Firebase
 

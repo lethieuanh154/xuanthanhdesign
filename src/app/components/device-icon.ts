@@ -19,7 +19,7 @@ import { DeviceDef } from '../geometry';
         @case ('meter') {
           <rect x="6" y="6" width="52" height="52" rx="3" fill="#2b3138" />
           <rect x="11" y="11" width="42" height="42" rx="2" fill="#f5f7f9" />
-          @if (def().type === 'METER_MULTI' || def().type === 'PFR') {
+          @if (def().type === 'METER_MULTI' || def().type === 'PFR' || def().type === 'EARTH_RELAY') {
             <rect x="15" y="17" width="34" height="16" rx="1" fill="#103b23" />
             <text x="32" y="29" text-anchor="middle" font-size="10" font-family="monospace" fill="#39ff14">{{ def().type === 'PFR' ? 'cosφ' : '230.4' }}</text>
             <circle cx="20" cy="44" r="3" fill="#6b7783" /><circle cx="32" cy="44" r="3" fill="#6b7783" /><circle cx="44" cy="44" r="3" fill="#6b7783" />
@@ -67,7 +67,7 @@ export class DeviceIcon {
   readonly kind = computed(() => {
     const t = this.def().type;
     if (t === 'ACB' || t === 'MCCB' || t === 'MCB') return 'breaker';
-    if (t === 'METER_V' || t === 'METER_A' || t === 'METER_MULTI' || t === 'PFR') return 'meter';
+    if (t === 'METER_V' || t === 'METER_A' || t === 'METER_MULTI' || t === 'PFR' || t === 'EARTH_RELAY') return 'meter';
     if (t === 'PILOT_LAMP' || t === 'PUSH_BUTTON' || t === 'SELECTOR') return 'round';
     if (t === 'CT') return 'ct';
     if (t === 'CAPACITOR') return 'cap';

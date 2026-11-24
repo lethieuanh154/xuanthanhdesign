@@ -1,6 +1,7 @@
 import { Catalog, DeviceDef, PlacedDevice, Project, SHEET_SIZES } from './model';
 import { Part, Rect } from './types';
 import { bboxIntersect, bboxH, bboxW, holeBBox, r2, rectGap, rectInside, rectsIntersect, segmentHitsBBox } from './math';
+import { coverWindowProblems } from './cover';
 import { deviceCutout, deviceRect, EnclosureLayout, PLATE_MARGIN, SECTION_MARGIN, sectionAt } from './layout';
 
 /** Kết quả một luật. step = bước của stepper hiển thị badge lỗi. */
@@ -130,6 +131,14 @@ export function ruleDoorCutouts(c: Ctx): RuleResult[] {
   return out;
 }
 
+/** Luật phụ (tủ 2 lớp): ô khoét cửa trong nằm trong cửa trong, cách mép ≥ 20 mm. */
+export function ruleCover(c: Ctx): RuleResult[] {
+  if (!c.layout.cover) return [];
+  const probs = coverWindowProblems(c.p, c.cat, c.layout);
+  if (!probs.length) return [res('cover-window', 'ok', 'Ô khoét cửa trong hợp lệ', [], 3)];
+  return probs.map((x) => res('cover-window', 'error', x.msg, x.uids, 3));
+}
+
 /** Luật 4: ngăn có ACB phải cao ≥ 500 mm. */
 export function ruleAcbSection(c: Ctx): RuleResult[] {
   const out: RuleResult[] = [];
@@ -148,7 +157,8 @@ export function ruleLoad(c: Ctx): RuleResult[] {
   if (!breakers.length) return [res('load', 'ok', 'Chưa có aptomat để tính tải', [], 4)];
   const sorted = [...breakers].sort((a, b) => (b.def.ratedCurrent ?? 0) - (a.def.ratedCurrent ?? 0));
   let mains = breakers.filter((x) => x.pd.isMain);
-  if (!mains.length) mains = c.p.cabinetType === 'ATS' ? sorted.slice(0, 2) : sorted.slice(0, 1);
+  // tủ ATS / tủ 2 lớp kiểu ATS: 2 aptomat lớn nhất là 2 nguồn
+  if (!mains.length) mains = c.p.cabinetType === 'ATS' || c.p.cabinetType === '2L' ? sorted.slice(0, 2) : sorted.slice(0, 1);
   const mainA = Math.max(...mains.map((m) => m.def.ratedCurrent ?? 0));
   const feeders = breakers.filter((x) => !mains.includes(x));
   const ks = c.p.busbar.diversity || 1;
@@ -207,7 +217,7 @@ export function runRules(p: Project, cat: Catalog, layout: EnclosureLayout, part
     })
     .filter((v): v is NonNullable<typeof v> => v !== null);
   const c: Ctx = { p, cat, layout, parts, placed };
-  return [...ruleCollision(c), ...ruleMountArea(c), ...ruleDoorCutouts(c), ...ruleAcbSection(c), ...ruleDepthAndBusbar(c), ...ruleLoad(c), ...ruleSheetSize(c)];
+  return [...ruleCollision(c), ...ruleMountArea(c), ...ruleDoorCutouts(c), ...ruleCover(c), ...ruleAcbSection(c), ...ruleDepthAndBusbar(c), ...ruleLoad(c), ...ruleSheetSize(c)];
 }
 
 /** Gom kết quả theo thiết bị để tô màu trên canvas. */

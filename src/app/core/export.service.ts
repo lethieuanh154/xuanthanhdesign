@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { bboxH, bboxW, BomRow, dxfFileName, MATERIAL_LABEL, Part, partsToCombinedDxf, partToDxf, r2, slug } from '../geometry';
 import { ProjectStore } from './project.store';
+import { PrintService } from './print.service';
 
 export function saveBlob(data: BlobPart, filename: string, type: string): void {
   const blob = new Blob([data], { type });
@@ -19,6 +20,7 @@ export const vnd = (v: number): string => new Intl.NumberFormat('vi-VN').format(
 @Injectable({ providedIn: 'root' })
 export class ExportService {
   private readonly store = inject(ProjectStore);
+  private readonly printer = inject(PrintService);
 
   downloadPartDxf(part: Part): void {
     saveBlob(partToDxf(part), dxfFileName(this.store.project().orderCode, part), 'application/dxf');
@@ -29,6 +31,16 @@ export class ExportService {
       this.downloadPartDxf(p);
       await new Promise((r) => setTimeout(r, 350));
     }
+  }
+
+  /** Gói .zip tất cả DXF từng chi tiết (fflate, tải lazy). */
+  async downloadDxfZip(): Promise<void> {
+    const { zipSync, strToU8 } = await import('fflate');
+    const code = this.store.project().orderCode;
+    const files: Record<string, Uint8Array> = {};
+    for (const p of this.store.parts()) files[dxfFileName(code, p)] = strToU8(partToDxf(p));
+    const zip = zipSync(files, { level: 6 });
+    saveBlob(zip as BlobPart, `${slug(code)}_DXF_${this.store.parts().length}chitiet.zip`, 'application/zip');
   }
 
   downloadCombinedDxf(): void {
@@ -108,7 +120,13 @@ export class ExportService {
     saveBlob(out, `${slug(this.store.project().orderCode)}_BOM.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   }
 
+  /** Bản vẽ tổng thể A3 có khung tên → hộp thoại in (Lưu thành PDF). */
   print(): void {
-    window.print();
+    this.printer.print('drawing');
+  }
+
+  /** Báo giá cho khách A4 → hộp thoại in (Lưu thành PDF). */
+  printQuote(): void {
+    this.printer.print('quote');
   }
 }

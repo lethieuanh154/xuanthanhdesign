@@ -1,4 +1,4 @@
-import { AccessoryDef, Catalog, MATERIAL_LABEL, Project } from './model';
+import { AccessoryDef, Catalog, MATERIAL_LABEL, needsGasket, Project } from './model';
 import { Part } from './types';
 import { bboxH, bboxW, r2 } from './math';
 import { hingeCount } from './templates';
@@ -75,7 +75,7 @@ export function computeBom(p: Project, cat: Catalog, parts: Part[]): BomResult {
   }
   const sheets = [...sheetMap.values()].map((s) => ({ ...s, areaM2: r2(s.areaM2), kg: r2(s.kg) }));
   for (const s of sheets) {
-    const price = cat.pricing.steelPerKg[s.material as 'SPCC' | 'INOX304'] ?? cat.pricing.steelPerKg.SPCC;
+    const price = cat.pricing.steelPerKg[s.material as keyof typeof cat.pricing.steelPerKg] ?? cat.pricing.steelPerKg.SPCC;
     rows.push({ category: 'Tôn', code: `TON-${s.material}-${s.thickness}`, name: `Tôn ${MATERIAL_LABEL[s.material] ?? s.material} dày ${s.thickness} mm`, spec: `${s.areaM2} m²`, unit: 'kg', qty: s.kg, unitPrice: price, amount: Math.round(s.kg * price) });
   }
   const sheetAreaM2 = r2(sheets.reduce((a, s) => a + s.areaM2, 0));
@@ -111,12 +111,22 @@ export function suggestAccessoryQty(p: Project, def: AccessoryDef, cat: Catalog)
   const outerLeaves = leaves.filter((l) => l.id !== 'inner');
   switch (def.id) {
     case 'tay-nam':
-      return leaves.filter((l) => l.hasLock).length;
+      return (e.lock ?? 'handle') === 'handle' ? leaves.filter((l) => l.hasLock).length : 0;
+    case 'khoa-vuong':
+      return e.lock === 'square' ? leaves.filter((l) => l.hasLock).length : 0;
+    case 'khoa-chia':
+      return e.lock === 'key' ? leaves.filter((l) => l.hasLock).length : 0;
     case 'khoa':
-      return leaves.filter((l) => l.hasLock).length + (e.doorType === 'double' ? 1 : 0);
+      // chốt cánh phụ cho cửa 2 cánh
+      return e.doorType === 'double' ? 1 : 0;
+    case 'quat':
+      return e.vent === 'fan' ? 1 : 0;
     case 'ban-le':
-      return leaves.reduce((s, l) => s + hingeCount(l.rect.h), 0);
+      // + bản lề cho cửa trong của tủ 2 lớp
+      return leaves.reduce((s, l) => s + hingeCount(l.rect.h), 0) + (layout.cover ? hingeCount(layout.cover.h) : 0);
     case 'ron':
+      // IP ≥ 54 mới cần ron cửa
+      if (!needsGasket(e)) return 0;
       return r2(outerLeaves.reduce((s, l) => s + (2 * (l.rect.w + l.rect.h)) / 1000, 0));
     case 'oc-vit':
       return 1;

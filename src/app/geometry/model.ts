@@ -3,11 +3,16 @@
  * Mọi kích thước tính bằng mm, dòng điện tính bằng A, giá tính bằng VNĐ.
  */
 
-export type CabinetType = 'DB' | 'MSB' | 'ATS' | 'CAP';
-export type DoorType = 'single' | 'double' | 'inner_outer';
-export type VentType = 'none' | 'bottom' | 'top_bottom';
+/** 2L = tủ 2 lớp (cửa ngoài gắn thiết bị đo + cửa trong che trong). */
+export type CabinetType = 'DB' | 'MSB' | 'ATS' | 'CAP' | '2L';
+/** two_layer = cửa ngoài (gắn đồng hồ, đèn, relay) + cửa trong khoét ô lộ cần gạt aptomat, bản lề dưới. */
+export type DoorType = 'single' | 'double' | 'inner_outer' | 'two_layer';
+export type VentType = 'none' | 'bottom' | 'top_bottom' | 'fan' | 'side_vertical';
 export type Mounting = 'wall' | 'floor';
-export type Material = 'SPCC' | 'INOX304';
+/** SPCC = thép sơn tĩnh điện, GALV = tôn mạ kẽm. */
+export type Material = 'SPCC' | 'GALV' | 'INOX304' | 'INOX201';
+export type LockType = 'handle' | 'square' | 'key';
+export type Hinge = 'left' | 'right';
 export type MountSurface = 'plate' | 'door';
 export type BaseHeight = 0 | 100 | 150;
 export type SheetSize = '1250x2500' | '1500x3000';
@@ -27,6 +32,8 @@ export type DeviceType =
   | 'PFR'
   | 'CONTACTOR'
   | 'PHASE_RELAY'
+  | 'EARTH_RELAY'
+  | 'FUSE'
   | 'CAPACITOR';
 
 export type DoorCutoutDef = { shape: 'rect'; w: number; h: number } | { shape: 'circle'; d: number };
@@ -70,6 +77,18 @@ export interface EnclosureConfig {
   vent: VentType;
   base: BaseHeight;
   mounting: Mounting;
+  /** Chiều mở cửa: bản lề bên trái/phải (cửa 1 cánh, cửa trong + ngoài). */
+  hinge?: Hinge;
+  lock?: LockType;
+  /** Mã màu sơn RAL (chỉ áp dụng cho thép sơn tĩnh điện). */
+  ral?: string;
+  /** Cấp bảo vệ IP: chữ số thứ nhất (bụi) và thứ hai (nước). */
+  ipDust?: number;
+  ipWater?: number;
+  /** Tủ treo: 4 tai treo hàn ngoài lưng (thay cho lỗ treo trên hậu). */
+  brackets?: boolean;
+  /** Lỗ đi cáp ở đáy: lỗ tròn knock-out, hoặc ô chữ nhật + tấm che bắt 4 bulông. */
+  cableEntry?: 'knockout' | 'gland';
 }
 
 export interface PlacedDevice {
@@ -84,6 +103,8 @@ export interface PlacedDevice {
   doorCutout: boolean;
   isMain?: boolean;
   label?: string;
+  /** Nhóm thêm cùng lúc (wizard bước 6 hiển thị 1 dòng/nhóm). */
+  batch?: string;
 }
 
 export interface BusbarConfig {
@@ -118,6 +139,17 @@ export interface Project {
   busbar: BusbarConfig;
   accessories: AccessoryLine[];
   sheetSize: SheetSize;
+  // ---- thông tin đơn hàng (wizard bước 8) ----
+  contact?: string;
+  phone?: string;
+  address?: string;
+  province?: string;
+  note?: string;
+  status?: 'draft' | 'done';
+  completedAt?: string;
+  /** Ảnh render nhỏ (JPEG data URL) chụp từ khung 3D khi hoàn tất. */
+  thumbnail?: string;
+  filesGeneratedAt?: string;
 }
 
 export interface CabinetTemplate {
@@ -155,6 +187,8 @@ export interface Pricing {
   steelPerKg: Record<Material, number>;
   copperPerKg: number;
   fabricationPerM2: number;
+  /** Thuế VAT áp cho báo giá, ví dụ 0.1 = 10%. */
+  vat: number;
   density: { steel: number; copper: number };
 }
 
@@ -174,6 +208,17 @@ export const SHEET_SIZES: Record<SheetSize, { w: number; h: number }> = {
 
 export const MATERIAL_LABEL: Record<string, string> = {
   SPCC: 'Thép SPCC sơn tĩnh điện',
+  GALV: 'Tôn mạ kẽm',
   INOX304: 'Inox 304',
+  INOX201: 'Inox 201',
   CU: 'Đồng đỏ',
 };
+
+export function ipCode(e: EnclosureConfig): string {
+  return `IP${e.ipDust ?? 4}${e.ipWater ?? 3}`;
+}
+
+/** IP ≥ 54 → cần ron cửa. */
+export function needsGasket(e: EnclosureConfig): boolean {
+  return (e.ipDust ?? 4) >= 5 && (e.ipWater ?? 3) >= 4;
+}

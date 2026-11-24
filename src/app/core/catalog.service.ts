@@ -1,11 +1,21 @@
 import { Injectable, signal } from '@angular/core';
 import { Catalog } from '../geometry';
 
+export interface CustomerSeed {
+  name: string;
+  contact: string;
+  phone: string;
+  address: string;
+  province: string;
+}
+
 /** Nạp thư viện thiết bị, template, bảng chấn... từ src/assets/data/*.json. */
 @Injectable({ providedIn: 'root' })
 export class CatalogService {
   private readonly _catalog = signal<Catalog | null>(null);
   readonly error = signal<string | null>(null);
+  /** Khách hàng mẫu cho ô gợi ý (bước 8). */
+  readonly customers = signal<CustomerSeed[]>([]);
 
   get catalog(): Catalog {
     const c = this._catalog();
@@ -28,6 +38,9 @@ export class CatalogService {
         get<{ accessories: Catalog['accessories'] }>('accessories'),
         get<Catalog['pricing']>('pricing'),
       ]);
+      get<{ customers: CustomerSeed[] }>('customers')
+        .then((c) => this.customers.set(c.customers))
+        .catch(() => undefined);
       this._catalog.set({
         devices: devices.devices,
         templates: templates.templates,

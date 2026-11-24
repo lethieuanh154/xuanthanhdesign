@@ -8,6 +8,7 @@ export interface ProjectSummary {
   customer: string;
   cabinetType: CabinetType;
   updatedAt: string;
+  status?: 'draft' | 'done';
 }
 
 /**
@@ -21,6 +22,8 @@ export interface ProjectRepository {
   remove(id: string): Promise<void>;
   getLastOpenedId(): string | null;
   setLastOpenedId(id: string): void;
+  /** Mã đơn tự sinh dạng XT-yymm-0001 (đếm theo tháng). Firestore: dùng transaction trên counters/{yymm}. */
+  nextOrderCode(): string;
 }
 
 const INDEX_KEY = 'tdb.projects';
@@ -56,7 +59,7 @@ export class LocalStorageProjectRepository implements ProjectRepository {
   async save(p: Project): Promise<void> {
     localStorage.setItem(itemKey(p.id), JSON.stringify(p));
     const idx = this.readIndex().filter((x) => x.id !== p.id);
-    idx.push({ id: p.id, name: p.name, orderCode: p.orderCode, customer: p.customer, cabinetType: p.cabinetType, updatedAt: p.updatedAt });
+    idx.push({ id: p.id, name: p.name, orderCode: p.orderCode, customer: p.customer, cabinetType: p.cabinetType, updatedAt: p.updatedAt, status: p.status });
     this.writeIndex(idx);
   }
 
@@ -73,6 +76,19 @@ export class LocalStorageProjectRepository implements ProjectRepository {
     }
   }
 
+  nextOrderCode(): string {
+    const d = new Date();
+    const key = `tdb.seq.${d.getFullYear()}${d.getMonth() + 1}`;
+    let n = 1;
+    try {
+      n = (parseInt(localStorage.getItem(key) ?? '0', 10) || 0) + 1;
+      localStorage.setItem(key, String(n));
+    } catch {
+      n = Math.floor(Math.random() * 9000) + 1;
+    }
+    return formatOrderCode(d, n);
+  }
+
   setLastOpenedId(id: string): void {
     try {
       localStorage.setItem(LAST_KEY, id);
@@ -80,6 +96,12 @@ export class LocalStorageProjectRepository implements ProjectRepository {
       /* bỏ qua khi trình duyệt chặn storage */
     }
   }
+}
+
+export function formatOrderCode(d: Date, seq: number): string {
+  const yy = String(d.getFullYear() % 100).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `XT-${yy}${mm}-${String(seq).padStart(4, '0')}`;
 }
 
 export const PROJECT_REPOSITORY = new InjectionToken<ProjectRepository>('PROJECT_REPOSITORY', {
