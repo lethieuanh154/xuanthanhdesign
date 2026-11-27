@@ -89,13 +89,23 @@ Giống kiểu "cửa trong + ngoài", nhưng **cửa trong không gắn thiết
   **Lưu thành PDF** (khổ giấy tự đặt theo loại tài liệu).
 - **Xem trước trải phẳng**: khung CNC nền đen, chọn chi tiết, chỉ xem.
 
-### Sắp tôn từ file DXF → ảnh JPG (`/sap-ton-dxf`)
+### Sắp tôn từ file DWG / DXF → ảnh JPG (`/sap-ton-dxf`)
 
-Công cụ độc lập (không cần dự án): nhập **bản vẽ gia công đã vẽ sẵn** (DXF), tự nhận dạng chi tiết, xếp lên khổ tôn,
-xuất **ảnh JPG** các tấm tôn (nền tối, nét trắng, kiểu màn hình CAM). Vào từ trang chọn giao diện hoặc menu **Xuất ▾**.
+Công cụ độc lập (không cần dự án): nhập **bản vẽ gia công đã vẽ sẵn** (DWG hoặc DXF), tự nhận dạng chi tiết, xếp lên
+khổ tôn, xuất **ảnh JPG** các tấm tôn (nền tối, nét trắng, kiểu màn hình CAM). Vào từ trang chọn giao diện hoặc menu **Xuất ▾**.
 
-1. **Chọn file .DXF** (hoặc kéo thả). File DWG bị từ chối kèm hướng dẫn: mở AutoCAD → Save As → DXF
-   (DWG TrueView không lưu được DXF).
+1. **Chọn file .DWG / .DXF** (hoặc kéo thả).
+   - **DXF** ASCII: đọc bằng `dxf-parser`.
+   - **DWG**: đọc ngay trong trình duyệt bằng **LibreDWG** biên dịch WebAssembly (`@mlightcad/libredwg-web`), không cần
+     AutoCAD / ODA, không gửi file đi đâu. `libredwg-web.wasm` (~7,8 MB, nén gzip khi phục vụ) chỉ tải khi chọn file DWG
+     lần đầu; được copy vào `assets/libredwg/` lúc build (`angular.json` → `assets`). `geometry/dwg-import.ts` đổi
+     `DwgDatabase` sang cùng dạng `dxf-parser` (cờ LWPOLYLINE DWG bit 512 = khép kín; INSERT.rotation radian → độ).
+     Đã đối chiếu với `dwg2dxf` (LibreDWG CLI) trên bản vẽ PENTA-SHOP (AC1032, 4 118 entity, 680 block): cùng 12 157 nét,
+     cùng khung bao, cùng số nét từng layer. LibreDWG vẫn báo lỗi với MTEXT / màu chữ của DWG 2018 — không ảnh hưởng hình học.
+   - ⚠ `@mlightcad/libredwg-web` giấy phép **GPL-3.0**. Dùng nội bộ thì không sao; nếu phát hành app cho bên ngoài phải
+     tuân thủ GPL (công bố mã nguồn phần liên quan) — cân nhắc trước khi mở cho khách hàng.
+   - `angular.json` có `"externalDependencies": ["node:module"]`: glue Emscripten có `import("node:module")` chỉ chạy
+     trong Node, trình duyệt không bao giờ gọi tới.
 2. **Layer**: mỗi layer chọn *Cắt* (nhận dạng biên dạng/lỗ), *Hiện* (chỉ vẽ — đường chấn) hoặc *Tắt*.
    Mặc định tự đoán theo tên: `DIM`, `TEXT`, `KHUNG`, `HATCH`, `DEFPOINTS`… → Tắt; `BEND`, `CHAN` → Hiện; layer đang tắt/đóng băng → Tắt.
    **Đơn vị bản vẽ**: Tự động / mm / cm / m / inch. Tự động = theo `$INSUNITS`, nhưng nếu header ghi inch mà bản vẽ
@@ -147,7 +157,8 @@ Không cần backend. Dự án tự lưu vào `localStorage` (F5 vẫn còn); n�
 | ZIP DXF | fflate (tải lazy) |
 | Font | Inter (`@fontsource/inter`, đóng gói kèm app, có tiếng Việt) |
 | Kéo từ thư viện vào canvas | Angular CDK drag-drop |
-| DXF | Writer DXF R12 (AC1009) tự viết — `src/app/geometry/dxf.ts` |
+| DXF | Writer DXF R12 (AC1009) tự viết — `src/app/geometry/dxf.ts`; đọc DXF: `dxf-parser` |
+| Đọc DWG | LibreDWG WebAssembly — `@mlightcad/libredwg-web` (GPL-3.0, tải lazy) |
 | BOM | CSV (UTF-8 BOM, mở được bằng Excel) + XLSX (SheetJS, tải lazy) |
 | PDF | Trang in A3 ngang có khung tên → "Lưu thành PDF" của trình duyệt |
 | Test | Vitest + `dxf-parser` (xuất DXF rồi parse lại) |
@@ -179,9 +190,10 @@ src/
    │  ├─ bom.ts                 BOM, khối lượng, gợi ý số lượng phụ kiện
    │  ├─ project-factory.ts     tạo dự án từ template
    │  ├─ dxf-import.ts          đọc DXF bản vẽ có sẵn → chi tiết (biên dạng + lỗ) cho /sap-ton-dxf
+   │  ├─ dwg-import.ts          DwgDatabase (libredwg-web) → cùng dạng dxf-parser
    │  ├─ rect-pack.ts           xếp hình chữ nhật MaxRects (dùng cho /sap-ton-dxf)
    │  ├─ geometry.spec.ts       unit test (20 test)
-   │  └─ dxf-import.spec.ts     unit test nhập DXF + MaxRects (11 test)
+   │  └─ dxf-import.spec.ts     unit test nhập DXF/DWG + MaxRects (13 test)
    ├─ pages/                    wizard-page (/cau-hinh), result-page (/don-hang), advanced-page (/nang-cao),
    │                            dxf-nest-page (/sap-ton-dxf)
    ├─ wizard/

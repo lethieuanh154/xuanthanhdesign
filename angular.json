@@ -33,6 +33,11 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "libredwg-web.wasm",
+                "input": "node_modules/@mlightcad/libredwg-web/wasm",
+                "output": "assets/libredwg"
               }
             ],
             "styles": [
@@ -41,6 +46,9 @@
               "node_modules/@fontsource/inter/600.css",
               "node_modules/@fontsource/inter/700.css",
               "src/styles.scss"
+            ],
+            "externalDependencies": [
+              "node:module"
             ],
             "allowedCommonJsDependencies": [
               "xlsx",

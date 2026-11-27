@@ -19,6 +19,7 @@ import {
   packRects,
   partsToCombinedDxf,
 } from './index';
+import { DwgDatabaseLike, dwgDatabaseToDoc, DwgEntityLike } from './dwg-import';
 
 const cat: Catalog = {
   devices: devicesJson.devices as DeviceDef[],
@@ -186,6 +187,44 @@ describe('Nhập DXF (dxf-import.ts)', () => {
     const forced = explodeDxf(parse(text), { unitScale: 25.4 });
     expect(forced.extents.maxX).toBeCloseTo(4920 * 25.4, 3);
     expect(forced.unitNote).toBe('');
+  });
+});
+
+describe('Đọc DWG (dwg-import.ts — dữ liệu dạng libredwg-web)', () => {
+  const rect = (flag: number, owner = 'M'): DwgEntityLike => ({
+    type: 'LWPOLYLINE',
+    layer: 'CAT',
+    ownerBlockRecordSoftId: owner,
+    flag,
+    vertices: [
+      { x: 0, y: 0, bulge: 0 },
+      { x: 100, y: 0, bulge: 0 },
+      { x: 100, y: 50, bulge: 0 },
+      { x: 0, y: 50, bulge: 0 },
+    ],
+  });
+  const db = (entities: DwgEntityLike[], blocks: DwgDatabaseLike['tables'] = {}): DwgDatabaseLike => ({
+    header: { INSUNITS: 4 },
+    entities,
+    tables: {
+      LAYER: { entries: [{ name: 'CAT', color: 0x00ff00, off: false, frozen: false }] },
+      BLOCK_RECORD: { entries: [{ handle: 'M', name: '*Model_Space' }, { handle: 'P', name: '*Paper_Space' }, ...(blocks?.BLOCK_RECORD?.entries ?? [])] },
+    },
+  });
+
+  it('LWPOLYLINE: bit 512 của cờ DWG = khép kín (bit 8 = có cao độ, không phải khép kín)', () => {
+    const ex = explodeDxf(dwgDatabaseToDoc(db([rect(512 + 8), rect(8)])));
+    expect(ex.paths.map((p) => p.closed)).toEqual([true, false]);
+  });
+
+  it('INSERT: góc xoay radian → độ; entity paper space và entity ẩn bị bỏ', () => {
+    const blk = { BLOCK_RECORD: { entries: [{ handle: 'B', name: 'TAM', basePoint: { x: 0, y: 0 }, entities: [rect(512, 'B')] }] } };
+    const ins: DwgEntityLike = { type: 'INSERT', layer: 'CAT', ownerBlockRecordSoftId: 'M', name: 'TAM', insertionPoint: { x: 1000, y: 0 }, xScale: 1, yScale: 1, rotation: Math.PI / 2 };
+    const ex = explodeDxf(dwgDatabaseToDoc(db([ins, rect(512, 'P'), { ...rect(512), isVisible: false }], blk)));
+    expect(ex.paths.length).toBe(1);
+    expect(ex.extents.minX).toBeCloseTo(950, 6); // xoay 90°: 100×50 → 50 rộng × 100 cao, nằm bên trái điểm chèn
+    expect(ex.extents.maxX).toBeCloseTo(1000, 6);
+    expect(ex.extents.maxY).toBeCloseTo(100, 6);
   });
 });
 

@@ -8,7 +8,7 @@
       </svg>
       <b>XUÂN THÀNH</b>
     </a>
-    <h1>Sắp tôn từ file DXF</h1>
+    <h1>Sắp tôn từ file DWG / DXF</h1>
     @if (fileName()) {
       <span class="file mono">{{ fileName() }} · {{ fmt(fileSize() / 1024, 0) }} KB</span>
     }
@@ -21,11 +21,12 @@
       <section>
         <div class="panel-title">1. File bản vẽ</div>
         <label class="drop" [class.over]="dragOver()" (dragover)="$event.preventDefault(); dragOver.set(true)" (dragleave)="dragOver.set(false)" (drop)="onDrop($event)">
-          <input type="file" accept=".dxf" (change)="onPick($event)" hidden />
+          <input type="file" accept=".dxf,.dwg" (change)="onPick($event)" hidden />
           @if (loading()) {
             <span>Đang đọc bản vẽ…</span>
+            <span class="muted small">File DWG lần đầu cần tải bộ đọc (~2–3 MB)</span>
           } @else {
-            <b>Chọn file .DXF</b>
+            <b>Chọn file .DWG / .DXF</b>
             <span class="muted small">hoặc kéo thả vào đây</span>
           }
         </label>
@@ -248,7 +249,7 @@
         @if (!exploded() && !loading()) {
           <div class="placeholder">
             <b>Chưa có bản vẽ</b>
-            <span>Chọn file DXF ở bên trái. Chương trình tìm các vòng kín (biên dạng + lỗ) trên layer "Cắt", xếp lên khổ tôn rồi xuất ảnh JPG.</span>
+            <span>Chọn file DWG hoặc DXF ở bên trái. Chương trình tìm các vòng kín (biên dạng + lỗ) trên layer "Cắt", xếp lên khổ tôn rồi xuất ảnh JPG.</span>
           </div>
         }
         @if (view() === 'src' && exploded()) {

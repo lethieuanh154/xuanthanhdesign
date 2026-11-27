@@ -567,8 +567,12 @@ export function convexHull(pts: Pt[]): Pt[] {
   return [...lo.slice(0, -1), ...hi.slice(0, -1)];
 }
 
-/** Gom các nét chạm nhau (khoảng cách ≤ tol) thành nhóm — lưới băm theo ô để chỉ so các đoạn gần nhau. */
-function groupTouching(paths: RawPath[], tol: number, span: number): number[][] {
+/**
+ * Gom các nét chạm nhau (khoảng cách ≤ tol) thành nhóm — lưới băm theo ô để chỉ so các đoạn gần nhau.
+ * Cỡ ô theo độ dài đoạn điển hình (trung vị × 2), KHÔNG theo khổ bản vẽ: bản vẽ có thứ nằm rải rác
+ * rất xa (khung tên, sơ đồ cách hàng trăm mét) sẽ làm ô quá to → mọi đoạn rơi vào vài ô → so O(n²).
+ */
+function groupTouching(paths: RawPath[], tol: number): number[][] {
   const segs: Seg[] = [];
   paths.forEach((p, i) => {
     const n = p.pts.length;
@@ -580,7 +584,11 @@ function groupTouching(paths: RawPath[], tol: number, span: number): number[][] 
     }
   });
   const dsu = new Dsu(paths.length);
-  const cell = Math.max(tol * 4, span / 400, 1e-3);
+  const lens = segs.map((s) => Math.hypot(s.bx - s.ax, s.by - s.ay)).sort((a, b) => a - b);
+  const median = lens.length ? lens[Math.floor(lens.length / 2)] : 1;
+  const total = lens.reduce((a, b) => a + b, 0);
+  // giới hạn ~2 triệu lượt chèn ô (đoạn rất dài phủ nhiều ô)
+  const cell = Math.max(tol * 4, median * 2, total / 2_000_000, 1e-3);
   const grid = new Map<number, number[]>();
   const K = (cx: number, cy: number): number => cx * 1000003 + cy;
   segs.forEach((s, si) => {
@@ -683,8 +691,7 @@ function buildComp(paths: RawPath[], tol: number): Comp {
 export function detectParts(src: ExplodedDxf, opt: DetectOptions): DetectResult {
   const tol = Math.max(1e-4, opt.tol);
   const cut = dedupe(src.paths.filter((p) => opt.cutLayers.has(p.layer)));
-  const span = Math.max(src.extents.maxX - src.extents.minX, src.extents.maxY - src.extents.minY, 1);
-  const comps = groupTouching(cut, tol, span)
+  const comps = groupTouching(cut, tol)
     .map((idx) => buildComp(idx.map((i) => cut[i]), tol))
     .sort((a, b) => bboxArea(b.bbox) - bboxArea(a.bbox));
 

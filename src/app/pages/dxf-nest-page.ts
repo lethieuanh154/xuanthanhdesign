@@ -4,14 +4,84 @@ import Konva from 'konva';
 import { CncStage } from '../components/konva-view';
 import { drawNest, drawSource, LayerMode, NEST_BG, nestLayout, sourceToWorld } from '../components/dxf-nest-render';
 import { saveBlob } from '../core/export.service';
-import { detectParts, DxfDocLike, explodeDxf, ImportedPart, packRects, pointInPolygon, removeDiacritics, slug } from '../geometry';
+import { BBox, detectParts, DxfDocLike, explodeDxf, ImportedPart, packRects, pointInPolygon, removeDiacritics, slug } from '../geometry';
+import { DwgDatabaseLike, dwgDatabaseToDoc } from '../geometry/dwg-import';
 
 type SheetPreset = '1250x2500' | '1500x3000' | 'custom';
 
-/** Layer mặc định TẮT (kích thước, chữ, hatch, khung tên…) — so khớp tên đã bỏ dấu. */
-const OFF_RE = /(^|[^a-z])(dim|dims|dimension|kich ?thuoc|kt|text|txt|chu|note|ghi ?chu|hatch|defpoints|title|khung|frame|vport|viewport)([^a-z]|$)/i;
+/**
+ * Layer mặc định TẮT (kích thước, hatch, khung tên…) — so khớp tên đã bỏ dấu.
+ * Không dùng từ ngắn dễ trùng như "chu", "kt" (layer "E.VK.CHU" là vỏ tủ, không phải chữ);
+ * chữ thật (TEXT/MTEXT) vốn đã bị bỏ qua theo loại entity.
+ */
+const OFF_RE = /(^|[^a-z])(dim|dims|dimension|kich ?thuoc|text|txt|ghi ?chu|hatch|defpoints|title|khung|frame|vport|viewport)([^a-z]|$)/i;
 /** Layer mặc định CHỈ HIỆN (đường chấn). */
 const SHOW_RE = /(bend|chan|gap|fold)/i;
+
+async function readDxf(f: File): Promise<DxfDocLike | null> {
+  const { default: DxfParser } = await import('dxf-parser');
+  return new DxfParser().parseSync(await f.text()) as unknown as DxfDocLike | null;
+}
+
+/** LibreDWG (WebAssembly ~7,5 MB) chỉ tải khi người dùng chọn file DWG lần đầu, sau đó dùng lại. */
+let libredwg: Promise<import('@mlightcad/libredwg-web').LibreDwgEx> | null = null;
+
+async function readDwg(f: File): Promise<DxfDocLike> {
+  const mod = await import('@mlightcad/libredwg-web');
+  libredwg ??= mod.LibreDwg.create(new URL('assets/libredwg', document.baseURI).href);
+  let lib: import('@mlightcad/libredwg-web').LibreDwgEx;
+  try {
+    lib = await libredwg;
+  } catch (e) {
+    libredwg = null;
+    throw new Error('Không tải được bộ đọc DWG (LibreDWG). Kiểm tra kết nối mạng rồi thử lại.', { cause: e });
+  }
+  const data = lib.dwg_read_data(await f.arrayBuffer(), mod.Dwg_File_Type.DWG);
+  if (data === undefined) throw new Error('Không đọc được file DWG. Thử lưu lại bằng AutoCAD (Save As DWG 2018) hoặc xuất DXF.');
+  try {
+    return dwgDatabaseToDoc(lib.convert(data) as unknown as DwgDatabaseLike);
+  } finally {
+    lib.dwg_free(data);
+  }
+}
+
+/**
+ * Hình bao cụm chi tiết chính: chia lưới ô cỡ 5 × (cạnh chi tiết trung vị), nối các ô có chi tiết kề nhau,
+ * lấy cụm nhiều chi tiết nhất. Model space hay có vài thứ lạc cách hàng trăm mét làm "vừa khung" vô dụng.
+ */
+function mainCluster(parts: ImportedPart[]): BBox | null {
+  if (!parts.length) return null;
+  const sizes = parts.map((p) => Math.max(p.w, p.h)).sort((a, b) => a - b);
+  const cell = Math.max(1, sizes[Math.floor(sizes.length / 2)] * 5);
+  const cells = new Map<string, ImportedPart[]>();
+  for (const p of parts) {
+    const k = `${Math.floor((p.world.minX + p.world.maxX) / 2 / cell)},${Math.floor((p.world.minY + p.world.maxY) / 2 / cell)}`;
+    cells.set(k, [...(cells.get(k) ?? []), p]);
+  }
+  const seen = new Set<string>();
+  let best: ImportedPart[] = [];
+  for (const start of cells.keys()) {
+    if (seen.has(start)) continue;
+    const group: ImportedPart[] = [];
+    const stack = [start];
+    seen.add(start);
+    while (stack.length) {
+      const k = stack.pop()!;
+      group.push(...cells.get(k)!);
+      const [cx, cy] = k.split(',').map(Number);
+      for (let dx = -1; dx <= 1; dx++)
+        for (let dy = -1; dy <= 1; dy++) {
+          const n = `${cx + dx},${cy + dy}`;
+          if (cells.has(n) && !seen.has(n)) {
+            seen.add(n);
+            stack.push(n);
+          }
+        }
+    }
+    if (group.length > best.length) best = group;
+  }
+  return best.reduce((a, p) => ({ minX: Math.min(a.minX, p.world.minX), minY: Math.min(a.minY, p.world.minY), maxX: Math.max(a.maxX, p.world.maxX), maxY: Math.max(a.maxY, p.world.maxY) }), { ...best[0].world });
+}
 
 /** Khoá ổn định của chi tiết (không đổi khi chỉnh dung sai / layer khác) = vị trí + kích thước trong bản vẽ. */
 const keyOf = (p: ImportedPart): string => `${Math.round(p.world.minX)},${Math.round(p.world.minY)},${Math.round(p.w)},${Math.round(p.h)}`;
@@ -229,13 +299,10 @@ export class DxfNestPage implements AfterViewInit, OnDestroy {
     this.fileSize.set(f.size);
     try {
       const head = new TextDecoder('latin1').decode(await f.slice(0, 22).arrayBuffer());
-      if (/^AC10\d\d/.test(head)) throw new Error('Đây là file DWG. Hãy mở bằng AutoCAD và lưu ra DXF (Save As → AutoCAD DXF) rồi chọn lại.');
       if (head.startsWith('AutoCAD Binary DXF')) throw new Error('DXF dạng nhị phân chưa hỗ trợ. Hãy lưu lại DXF dạng ASCII (mặc định của AutoCAD).');
-      const text = await f.text();
       await new Promise((r) => setTimeout(r, 20)); // cho giao diện kịp hiện "Đang đọc…"
-      const { default: DxfParser } = await import('dxf-parser');
-      const parsed = new DxfParser().parseSync(text) as unknown as DxfDocLike | null;
-      if (!parsed?.entities) throw new Error('Không đọc được nội dung DXF.');
+      const parsed = /^AC10\d\d/.test(head) ? await readDwg(f) : await readDxf(f);
+      if (!parsed?.entities) throw new Error('Không đọc được nội dung bản vẽ.');
       const ex = explodeDxf(parsed);
       if (!ex.paths.length) throw new Error('Bản vẽ không có nét nào trong Model (chỉ có chữ / kích thước, hoặc nằm ở Layout).');
       // chế độ mặc định từng layer
@@ -319,7 +386,12 @@ export class DxfNestPage implements AfterViewInit, OnDestroy {
       cnc.fit(lay.W, lay.H, 16);
     } else {
       const ex = this.exploded();
-      if (ex) cnc.fit(ex.extents.maxX - ex.extents.minX, ex.extents.maxY - ex.extents.minY, 30);
+      if (ex) {
+        // khoanh cụm chi tiết chính (bỏ đối tượng lạc ở rất xa trong model space); không có chi tiết → cả bản vẽ
+        const e = ex.extents;
+        const b = mainCluster(this.parts()) ?? e;
+        cnc.fit(b.maxX - b.minX, b.maxY - b.minY, 30, 30, b.minX - e.minX, e.maxY - b.maxY);
+      }
     }
     cnc.layer.batchDraw();
   }
