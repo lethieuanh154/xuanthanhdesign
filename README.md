@@ -89,6 +89,36 @@ Giống kiểu "cửa trong + ngoài", nhưng **cửa trong không gắn thiết
   **Lưu thành PDF** (khổ giấy tự đặt theo loại tài liệu).
 - **Xem trước trải phẳng**: khung CNC nền đen, chọn chi tiết, chỉ xem.
 
+### Sắp tôn từ file DXF → ảnh JPG (`/sap-ton-dxf`)
+
+Công cụ độc lập (không cần dự án): nhập **bản vẽ gia công đã vẽ sẵn** (DXF), tự nhận dạng chi tiết, xếp lên khổ tôn,
+xuất **ảnh JPG** các tấm tôn (nền tối, nét trắng, kiểu màn hình CAM). Vào từ trang chọn giao diện hoặc menu **Xuất ▾**.
+
+1. **Chọn file .DXF** (hoặc kéo thả). File DWG bị từ chối kèm hướng dẫn: mở AutoCAD → Save As → DXF
+   (DWG TrueView không lưu được DXF).
+2. **Layer**: mỗi layer chọn *Cắt* (nhận dạng biên dạng/lỗ), *Hiện* (chỉ vẽ — đường chấn) hoặc *Tắt*.
+   Mặc định tự đoán theo tên: `DIM`, `TEXT`, `KHUNG`, `HATCH`, `DEFPOINTS`… → Tắt; `BEND`, `CHAN` → Hiện; layer đang tắt/đóng băng → Tắt.
+   **Đơn vị bản vẽ**: Tự động / mm / cm / m / inch. Tự động = theo `$INSUNITS`, nhưng nếu header ghi inch mà bản vẽ
+   dài quá 30 m khi đổi (số đo gốc 200…30 000) thì coi là mm — nhiều file template mặc định bị ghi sai inch.
+   Kèm *Tỉ lệ ×* (bản vẽ vẽ theo tỉ lệ), *Dung sai* chạm nét (mặc định 0,1 mm), *Nhỏ nhất* (bỏ nhóm < 20 mm: chữ vẽ bằng nét, ký hiệu).
+3. **Chi tiết**: danh sách CT01, CT02… (đánh theo vị trí trên → dưới, trái → phải), số lỗ, số lượng/bộ, *Số bộ*.
+   Bấm vào chi tiết trên bản vẽ để bật/tắt; **Chọn vùng** = kéo khung chỉ lấy chi tiết nằm gọn trong khung (Shift = thêm).
+   Viền **xanh** = biên dạng kín; viền **cam** = biên dạng hở / chạm chữ T (vẫn xếp theo hình bao, dùng bao lồi để tính);
+   nét **đỏ** = nét lẻ không thuộc chi tiết nào (bị bỏ).
+4. **Khổ tôn** 1250×2500 / 1500×3000 / tuỳ chỉnh, khe hở, lề tấm, cho xoay 90° → số tấm, % sử dụng (theo diện tích tôn thực).
+   Cụm cỡ bằng khổ tôn (bản vẽ **đã sắp sẵn**, chi tiết đặt sát nhau dùng chung đường cắt — ví dụ file phôi đưa vào
+   2D CutAhead) được đặt nguyên 1 tấm, không xếp lại, không tính %.
+5. **Xuất JPG**: độ nét (0,5 / 1 / 2 px/mm), màu nét trắng hoặc theo bản vẽ, tiêu đề từng tấm, mã chi tiết.
+   Tên file `{TenDXF}_SapTon_{Rong}x{Dai}_{N}tam.jpg`; nhiều tấm xếp cạnh nhau (tối đa 6 tấm/hàng).
+
+Nhận dạng (`geometry/dxf-import.ts`): bung LINE, ARC, CIRCLE, ELLIPSE, LWPOLYLINE/POLYLINE (bulge), SPLINE, INSERT
+(lồng nhau, xoay, tỉ lệ, mảng MINSERT, lật OCS, layer 0 thừa hưởng) → bỏ nét trùng → **gom nét chạm nhau**
+(khoảng cách đoạn–đoạn ≤ dung sai, nên chạm chữ T / chồng nét / cắt ngang đều thành 1 nhóm) → nhóm nằm gọn trong nhóm
+khác (lỗ, ký hiệu khoá vẽ trong lỗ tay nắm) gộp vào → nhóm ngoài cùng = chi tiết. Biên dạng = vòng kín lớn nhất nếu trùng
+hình bao nhóm, nếu không thì bao lồi; lỗ = vòng kín cấp 1 bên trong. Bỏ qua TEXT, MTEXT, DIMENSION, HATCH, SOLID, paper space.
+Sắp xếp (`geometry/rect-pack.ts`): MaxRects theo hình bao, thử 3 tiêu chí (BSSF/BAF/BL) và giữ phương án ít tấm nhất.
+Đây là xếp theo **hình chữ nhật bao** — không lồng chi tiết vào lỗ / chỗ khuyết của chi tiết khác.
+
 ## Chạy
 
 Yêu cầu: Node 22.22+ / 24.15+ / 26+ (đã thử với Node 26.3), npm.
@@ -148,8 +178,12 @@ src/
    │  ├─ dxf.ts                 writer DXF R12 + quy tắc đặt tên file
    │  ├─ bom.ts                 BOM, khối lượng, gợi ý số lượng phụ kiện
    │  ├─ project-factory.ts     tạo dự án từ template
-   │  └─ geometry.spec.ts       unit test (20 test)
-   ├─ pages/                    wizard-page (/cau-hinh), result-page (/don-hang), advanced-page (/nang-cao)
+   │  ├─ dxf-import.ts          đọc DXF bản vẽ có sẵn → chi tiết (biên dạng + lỗ) cho /sap-ton-dxf
+   │  ├─ rect-pack.ts           xếp hình chữ nhật MaxRects (dùng cho /sap-ton-dxf)
+   │  ├─ geometry.spec.ts       unit test (20 test)
+   │  └─ dxf-import.spec.ts     unit test nhập DXF + MaxRects (11 test)
+   ├─ pages/                    wizard-page (/cau-hinh), result-page (/don-hang), advanced-page (/nang-cao),
+   │                            dxf-nest-page (/sap-ton-dxf)
    ├─ wizard/
    │  ├─ wizard.service.ts      trạng thái wizard (signals), 8 bước, gán luật → bước
    │  ├─ wizard-data.ts         nhóm thiết bị, bộ mẫu, kích thước phổ biến, IP, phụ kiện tuỳ chọn

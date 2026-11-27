@@ -12,3 +12,5 @@ export * from './nesting';
 export * from './dxf';
 export * from './bom';
 export * from './project-factory';
+export * from './dxf-import';
+export * from './rect-pack';

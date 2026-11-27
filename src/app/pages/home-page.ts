@@ -1,5 +1,5 @@
 import { Component, inject, input, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ProjectStore } from '../core/project.store';
 import { ViewKind, ViewPref } from '../core/view-pref';
 import { OrderList } from '../components/order-list';
@@ -11,7 +11,7 @@ import { OrderList } from '../components/order-list';
  */
 @Component({
   selector: 'app-home-page',
-  imports: [OrderList],
+  imports: [OrderList, RouterLink],
   template: `
     <div class="home">
       <header>
@@ -76,6 +76,23 @@ import { OrderList } from '../components/order-list';
         </button>
       </div>
 
+      <a class="tool" routerLink="/sap-ton-dxf">
+        <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+          <rect x="2" y="2" width="18" height="40" rx="2" fill="#1f252d" />
+          <rect x="24" y="2" width="18" height="40" rx="2" fill="#1f252d" />
+          <rect x="5" y="5" width="12" height="15" fill="none" stroke="#eef1f4" stroke-width="1.2" />
+          <rect x="5" y="23" width="12" height="16" fill="none" stroke="#eef1f4" stroke-width="1.2" />
+          <rect x="27" y="5" width="12" height="9" fill="none" stroke="#eef1f4" stroke-width="1.2" />
+          <rect x="27" y="17" width="12" height="22" fill="none" stroke="#eef1f4" stroke-width="1.2" />
+          <rect x="31" y="24" width="2" height="5" rx="1" fill="#ffd400" />
+        </svg>
+        <div>
+          <b>Sắp tôn từ file DXF</b>
+          <span>Nhập bản vẽ chi tiết (.dxf) → tự nhận dạng chi tiết, xếp lên khổ tôn, xuất ảnh JPG.</span>
+        </div>
+        <span class="go">Mở công cụ →</span>
+      </a>
+
       <label class="check remember"><input type="checkbox" [checked]="remember()" (change)="remember.set($any($event.target).checked)" /> Ghi nhớ lựa chọn, lần sau mở thẳng giao diện này</label>
 
       <section class="recent">
@@ -99,6 +116,13 @@ import { OrderList } from '../components/order-list';
     .card h2 { margin: 6px 0 0; font-size: 20px; }
     .card p { margin: 0; color: var(--steel-700); line-height: 1.5; font-size: 13.5px; }
     .go { margin-top: 6px; color: var(--accent); font-weight: 600; }
+    .tool { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding: 12px 16px; background: #fff; border: 2px solid transparent; border-radius: 12px; color: inherit; text-decoration: none; box-shadow: 0 1px 3px rgba(16,24,40,.1); transition: border-color .15s; }
+    .tool:hover { border-color: var(--accent); }
+    .tool svg { flex: none; }
+    .tool div { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .tool b { font-size: 15px; }
+    .tool span { color: var(--steel-700); font-size: 13px; }
+    .tool .go { margin: 0; flex: none; color: var(--accent); }
     .remember { margin: 16px 0 0; color: var(--steel-700); }
     .recent { margin-top: 28px; background: #fff; border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(16,24,40,.08); }
     .recent h3 { margin: 0 0 8px; font-size: 15px; }

@@ -1,0 +1,265 @@
+<div class="page">
+  <header class="top">
+    <a class="logo" routerLink="/" [queryParams]="{ chon: 1 }" title="Về trang chọn giao diện">
+      <svg width="26" height="26" viewBox="0 0 30 30" aria-hidden="true">
+        <rect x="3" y="2" width="24" height="26" rx="2" fill="#1E5AA8" />
+        <rect x="6" y="5" width="18" height="20" rx="1" fill="none" stroke="#fff" stroke-width="1.4" />
+        <path d="M16 8 L11 16 H15 L13 22 L19 13 H15 Z" fill="#FFD54F" />
+      </svg>
+      <b>XUÂN THÀNH</b>
+    </a>
+    <h1>Sắp tôn từ file DXF</h1>
+    @if (fileName()) {
+      <span class="file mono">{{ fileName() }} · {{ fmt(fileSize() / 1024, 0) }} KB</span>
+    }
+  </header>
+
+  <div class="body">
+    <!-- ───────── panel trái ───────── -->
+    <aside class="side">
+      <!-- 1. file -->
+      <section>
+        <div class="panel-title">1. File bản vẽ</div>
+        <label class="drop" [class.over]="dragOver()" (dragover)="$event.preventDefault(); dragOver.set(true)" (dragleave)="dragOver.set(false)" (drop)="onDrop($event)">
+          <input type="file" accept=".dxf" (change)="onPick($event)" hidden />
+          @if (loading()) {
+            <span>Đang đọc bản vẽ…</span>
+          } @else {
+            <b>Chọn file .DXF</b>
+            <span class="muted small">hoặc kéo thả vào đây</span>
+          }
+        </label>
+        @if (error()) {
+          <div class="msg err">{{ error() }}</div>
+        }
+        @if (exploded(); as ex) {
+          <div class="muted small info">
+            {{ fmt(ex.paths.length, 0) }} nét · {{ ex.layers.length }} layer · khổ bản vẽ {{ fmt(ex.extents.maxX - ex.extents.minX, 0) }} × {{ fmt(ex.extents.maxY - ex.extents.minY, 0) }} mm
+            @if (skippedText()) {
+              <br />Bỏ qua: {{ skippedText() }}
+            }
+          </div>
+        }
+      </section>
+
+      @if (exploded(); as ex) {
+        <!-- 2. layer -->
+        <section>
+          <div class="panel-title">
+            2. Layer
+            <span class="row gap4">
+              <button class="btn sm ghost" (click)="setAllModes('cut')">Tất cả cắt</button>
+              <button class="btn sm ghost" (click)="setAllModes('off')">Tắt hết</button>
+            </span>
+          </div>
+          <div class="hint">
+            <b>Cắt</b>: nét biên dạng / lỗ dùng để nhận dạng chi tiết. <b>Hiện</b>: chỉ vẽ (đường chấn). <b>Tắt</b>: bỏ (kích thước, chữ, khung tên).
+          </div>
+          <div class="layers">
+            @for (l of ex.layers; track l.name) {
+              <div class="layer" [class.off]="modeOf(l.name) === 'off'">
+                <span class="sw" [style.background]="l.color"></span>
+                <span class="ln" [title]="l.name">{{ l.name }}</span>
+                <span class="cnt num">{{ l.count }}</span>
+                <span class="seg mini">
+                  <button [class.on]="modeOf(l.name) === 'cut'" (click)="setMode(l.name, 'cut')">Cắt</button>
+                  <button [class.on]="modeOf(l.name) === 'show'" (click)="setMode(l.name, 'show')">Hiện</button>
+                  <button [class.on]="modeOf(l.name) === 'off'" (click)="setMode(l.name, 'off')">Tắt</button>
+                </span>
+              </div>
+            }
+          </div>
+          <div class="field opts">
+            <label>Đơn vị bản vẽ</label>
+            <div class="seg">
+              @for (u of units; track u.v) {
+                <button [class.on]="unit() === u.v" (click)="unit.set(u.v)">{{ u.label }}</button>
+              }
+            </div>
+          </div>
+          @if (ex.unitNote) {
+            <div class="msg warn">{{ ex.unitNote }}</div>
+          }
+          <div class="grid-3 opts">
+            <div class="field">
+              <label title="Nhân thêm vào kích thước (bản vẽ vẽ theo tỉ lệ 1:10 → nhập 10)">Tỉ lệ ×</label>
+              <input class="input num" type="number" min="0.001" step="any" [value]="userScale()" (change)="userScale.set(num($any($event.target).value, 0.001, 10000, 1))" />
+            </div>
+            <div class="field">
+              <label title="Hai nét cách nhau ≤ giá trị này thì coi là chạm nhau (cùng 1 chi tiết)">Dung sai</label>
+              <div class="input-unit">
+                <input class="input num" type="number" min="0.001" step="0.05" [value]="tol()" (change)="tol.set(num($any($event.target).value, 0.001, 50, 0.1))" /><span>mm</span>
+              </div>
+            </div>
+            <div class="field">
+              <label title="Bỏ các vòng kín nhỏ hơn (chữ vẽ bằng nét, ký hiệu…)">Nhỏ nhất</label>
+              <div class="input-unit">
+                <input class="input num" type="number" min="0" step="5" [value]="minSize()" (change)="minSize.set(num($any($event.target).value, 0, 5000, 20))" /><span>mm</span>
+              </div>
+            </div>
+          </div>
+          @if (ex.unitScale !== 1) {
+            <div class="muted small">Kích thước đã đổi ra mm (× {{ ex.unitScale }}).</div>
+          }
+        </section>
+
+        <!-- 3. chi tiết -->
+        <section>
+          <div class="panel-title">
+            3. Chi tiết <span class="badge grey">{{ includedParts().length }}/{{ parts().length }}</span>
+          </div>
+          <div class="row wrap tools">
+            <button class="btn sm" [class.on]="selecting()" (click)="startSelect()" title="Kéo khung trên bản vẽ để chỉ lấy chi tiết trong khung (giữ Shift để thêm)">⬚ Chọn vùng</button>
+            <button class="btn sm" (click)="selectAll(true)">Chọn hết</button>
+            <button class="btn sm" (click)="selectAll(false)">Bỏ hết</button>
+            <span class="spacer"></span>
+            <label class="setq" title="Nhân số lượng mọi chi tiết (số bộ tủ)">
+              Số bộ
+              <input class="input num" type="number" min="1" max="999" [value]="sets()" (change)="sets.set(num($any($event.target).value, 1, 999, 1))" />
+            </label>
+          </div>
+          @if (detected(); as d) {
+            @if (d.approxCount) {
+              <div class="msg info">
+                {{ d.approxCount }} chi tiết có biên dạng hở / chạm chữ T (viền cam) — vẫn xếp được theo hình bao; nếu đem cắt cần kiểm tra lại nét trong CAD.
+              </div>
+            }
+            @if (d.ignored.length) {
+              <div class="msg warn">{{ d.ignored.length }} nét lẻ (màu đỏ) không thuộc chi tiết nào — đã bỏ qua.</div>
+            }
+          }
+          @if (!parts().length) {
+            <div class="muted small empty">Không tìm thấy vòng kín nào trên các layer "Cắt".</div>
+          }
+          <div class="plist">
+            @for (p of parts(); track key(p)) {
+              <div class="pi" [class.off]="!isOn(p)" (mouseenter)="hover.set(key(p))" (mouseleave)="hover.set(null)">
+                <input type="checkbox" [checked]="isOn(p)" (change)="toggle(p)" />
+                <b class="code">{{ p.code }}</b>
+                <span class="dim num">{{ fmt(p.w) }} × {{ fmt(p.h) }}</span>
+                <span class="holes muted small" [title]="p.holes.length + ' lỗ'">{{ p.holes.length ? '◦' + p.holes.length : '' }}</span>
+                <input class="input num q" type="number" min="0" max="999" [value]="qtyOf(p)" (change)="setQty(p, $any($event.target).value)" [disabled]="!isOn(p)" title="Số lượng / bộ" />
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 4. sắp tôn -->
+        <section>
+          <div class="panel-title">4. Khổ tôn & sắp xếp</div>
+          <div class="seg">
+            <button [class.on]="preset() === '1250x2500'" (click)="preset.set('1250x2500')">1250 × 2500</button>
+            <button [class.on]="preset() === '1500x3000'" (click)="preset.set('1500x3000')">1500 × 3000</button>
+            <button [class.on]="preset() === 'custom'" (click)="preset.set('custom')">Tuỳ chỉnh</button>
+          </div>
+          @if (preset() === 'custom') {
+            <div class="grid-2 opts">
+              <div class="field">
+                <label>Rộng</label>
+                <div class="input-unit"><input class="input num" type="number" min="100" [value]="customW()" (change)="customW.set(num($any($event.target).value, 100, 20000, 1250))" /><span>mm</span></div>
+              </div>
+              <div class="field">
+                <label>Dài</label>
+                <div class="input-unit"><input class="input num" type="number" min="100" [value]="customH()" (change)="customH.set(num($any($event.target).value, 100, 20000, 2500))" /><span>mm</span></div>
+              </div>
+            </div>
+          }
+          <div class="grid-3 opts">
+            <div class="field">
+              <label title="Khoảng cách giữa 2 chi tiết">Khe hở</label>
+              <div class="input-unit"><input class="input num" type="number" min="0" [value]="gap()" (change)="gap.set(num($any($event.target).value, 0, 500, 10))" /><span>mm</span></div>
+            </div>
+            <div class="field">
+              <label title="Khoảng cách chi tiết tới mép tôn">Lề tấm</label>
+              <div class="input-unit"><input class="input num" type="number" min="0" [value]="margin()" (change)="margin.set(num($any($event.target).value, 0, 500, 10))" /><span>mm</span></div>
+            </div>
+            <div class="field">
+              <label>Xoay</label>
+              <label class="check tall"><input type="checkbox" [checked]="rotate()" (change)="rotate.set($any($event.target).checked)" /> 90°</label>
+            </div>
+          </div>
+          <div class="result card-box">
+            <div>
+              <b class="big">{{ stats().sheets }}</b> tấm
+              @if (stats().sheets > stats().whole) {
+                · sử dụng <b class="big" [class.lo]="stats().util < 0.5">{{ pct(stats().util) }}</b>
+              }
+            </div>
+            @if (stats().sheets > stats().whole) {
+              <div class="muted small">{{ stats().count }} chi tiết đã xếp</div>
+            }
+            @if (stats().whole) {
+              <div class="msg info">
+                {{ stats().whole }} tấm đã sắp sẵn trong bản vẽ (cụm chi tiết cỡ bằng khổ tôn) — giữ nguyên bố cục, không xếp lại.
+              </div>
+            }
+            @if (stats().unplacedCount) {
+              <div class="msg err">{{ stats().unplacedCount }} chi tiết vượt khổ tôn: {{ stats().unplaced.join(', ') }}</div>
+            }
+          </div>
+        </section>
+
+        <!-- 5. xuất -->
+        <section>
+          <div class="panel-title">5. Xuất ảnh JPG</div>
+          <div class="field">
+            <label>Độ nét</label>
+            <div class="seg">
+              <button [class.on]="res() === 0.5" (click)="res.set(0.5)">Thấp</button>
+              <button [class.on]="res() === 1" (click)="res.set(1)">Vừa</button>
+              <button [class.on]="res() === 2" (click)="res.set(2)">Cao</button>
+            </div>
+            <span class="muted small">{{ fmt(sheet().w * res(), 0) }} × {{ fmt(sheet().h * res(), 0) }} px mỗi tấm</span>
+          </div>
+          <div class="field">
+            <label>Màu nét</label>
+            <div class="seg">
+              <button [class.on]="colorMode() === 'white'" (click)="colorMode.set('white')">Trắng</button>
+              <button [class.on]="colorMode() === 'drawing'" (click)="colorMode.set('drawing')">Theo bản vẽ</button>
+            </div>
+          </div>
+          <label class="check"><input type="checkbox" [checked]="titles()" (change)="titles.set($any($event.target).checked)" /> Ghi tiêu đề từng tấm (số tấm, % sử dụng)</label>
+          <label class="check"><input type="checkbox" [checked]="codes()" (change)="codes.set($any($event.target).checked)" /> Ghi mã chi tiết</label>
+          <button class="btn primary go" [disabled]="!stats().sheets || exporting()" (click)="exportJpg()">
+            {{ exporting() ? 'Đang tạo ảnh…' : '⤓ Xuất JPG (' + stats().sheets + ' tấm)' }}
+          </button>
+        </section>
+      }
+    </aside>
+
+    <!-- ───────── khung xem ───────── -->
+    <main class="viewer">
+      <div class="tabs">
+        <button [class.on]="view() === 'src'" (click)="view.set('src')">Bản vẽ gốc</button>
+        <button [class.on]="view() === 'nest'" (click)="view.set('nest')" [disabled]="!stats().sheets">Sắp tôn ({{ stats().sheets }} tấm)</button>
+        <span class="spacer"></span>
+        <span class="hint-dark">
+          @if (selecting()) {
+            Kéo khung quanh các chi tiết cần lấy · Shift = thêm
+          } @else if (view() === 'src') {
+            Bấm vào chi tiết để bật/tắt · cuộn = zoom · kéo = di chuyển · nháy đúp = vừa khung
+          } @else {
+            Cuộn = zoom · kéo = di chuyển · nháy đúp = vừa khung
+          }
+        </span>
+      </div>
+      <div class="stage-wrap" [class.selecting]="selecting()">
+        <div #stage class="stage"></div>
+        @if (!exploded() && !loading()) {
+          <div class="placeholder">
+            <b>Chưa có bản vẽ</b>
+            <span>Chọn file DXF ở bên trái. Chương trình tìm các vòng kín (biên dạng + lỗ) trên layer "Cắt", xếp lên khổ tôn rồi xuất ảnh JPG.</span>
+          </div>
+        }
+        @if (view() === 'src' && exploded()) {
+          <div class="legend">
+            <span><i class="lg on"></i>chi tiết kín</span>
+            <span><i class="lg approx"></i>biên dạng hở</span>
+            <span><i class="lg off"></i>bỏ qua</span>
+            <span><i class="lg open"></i>nét lẻ</span>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+</div>

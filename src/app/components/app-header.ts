@@ -69,6 +69,8 @@ import { ExportService } from '../core/export.service';
               <hr />
               <button class="mi" (click)="ex.print()">🖨 Bản vẽ tổng thể (PDF)</button>
               <button class="mi" (click)="store.step.set(5)">☰ Mở bước ⑤ Xuất…</button>
+              <hr />
+              <a class="mi" routerLink="/sap-ton-dxf">▦ Sắp tôn từ file DXF → JPG…</a>
             </div>
           }
         </div>
